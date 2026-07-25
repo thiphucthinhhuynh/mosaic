@@ -20,12 +20,14 @@ REST over HTTPS, versioned under `/api/v1`, with resource-oriented, ownership-ne
 ## Consequences
 
 ### Positive
+
 - REST maps directly onto the domain's resource model and is straightforward to document, test, and reason about.
 - A documented OpenAPI-style contract (see `docs/api/`) is a concrete artifact reviewers can read without running the code.
 - No additional schema/codegen tooling required.
 
 ### Negative / Trade-offs
-- Nested views (e.g. a store's items and reviews together) either require multiple client requests or a deliberate aggregate endpoint. The project accepts a small number of explicit aggregate endpoints (see [docs/architecture.md](../architecture.md) §8, and the profile endpoint in Milestone 9) as a named exception rather than pretending strict REST purity has no cost.
+
+- Nested views (e.g. a store's items and reviews together) either require multiple client requests or a deliberate aggregate endpoint. The project accepts a small number of explicit aggregate endpoints (see [docs/architecture.md](../architecture.md) §8, and the profile endpoint in Milestone 8) as a named exception rather than pretending strict REST purity has no cost.
 - Versioning (`/api/v1`) adds a small amount of upfront ceremony for a project that may never need a `v2` — accepted because the cost is negligible and the alternative (no versioning) is a bad habit to practice.
 
 ## Related

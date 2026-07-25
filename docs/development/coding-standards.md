@@ -1,6 +1,6 @@
 # Coding Standards
 
-These conventions apply to both `apps/web` and `apps/api` unless stated otherwise. They exist so that code written in Milestone 1 and code written in Milestone 16 look like they came from the same team — enforced by tooling wherever possible, not left to memory.
+These conventions apply to both `apps/web` and `apps/api` unless stated otherwise. They exist so that code written in Milestone 0 and code written in Milestone 15 look like they came from the same team — enforced by tooling wherever possible, not left to memory.
 
 ## Language & Type Safety
 
@@ -32,7 +32,7 @@ These conventions apply to both `apps/web` and `apps/api` unless stated otherwis
 - Routes stay thin: parse → delegate to a controller. No business logic in route files.
 - Controllers stay thin: call exactly one service method, shape the response via the shared API response helper (`sendSuccess(res, data, meta?)`), never touch Prisma directly.
 - Services contain business logic and never reference `req`/`res` — this is what makes them unit-testable without spinning up Express.
-- Repositories are the *only* layer that imports Prisma. If you're calling `prisma.*` outside a `*.repository.ts` file, it's in the wrong place.
+- Repositories are the _only_ layer that imports Prisma. If you're calling `prisma.*` outside a `*.repository.ts` file, it's in the wrong place.
 - Every async route handler is wrapped in the shared `asyncHandler` utility so promise rejections reach the centralized error middleware — this is not optional, it's how errors get handled at all.
 - Errors are thrown as one of the `AppError` subclasses (`NotFoundError`, `ValidationError`, `UnauthorizedError`, `ForbiddenError`, `ConflictError`) from services — never a bare `throw new Error(...)`, since the centralized handler maps subclasses to HTTP status codes.
 
@@ -48,13 +48,13 @@ Produced by the shared response helper — controllers never hand-build this sha
 
 ## Validation
 
-- Every request body/query is validated by a Zod schema *before* it reaches a controller, applied as route middleware.
+- Every request body/query is validated by a Zod schema _before_ it reaches a controller, applied as route middleware.
 - Schemas live in `packages/shared` when the same shape is used by both apps (the common case), or co-located as `<module>.schema.ts` when backend-only.
 - The frontend uses the same schema for client-side form validation (React Hook Form's Zod resolver) — this is a UX convenience; the backend check is what's actually trusted.
 
 ## Comments
 
-- Default to no comments. Well-named code explains *what*; comments are reserved for *why* — a non-obvious constraint, a workaround for a specific bug, a business rule that isn't visible in the code shape.
+- Default to no comments. Well-named code explains _what_; comments are reserved for _why_ — a non-obvious constraint, a workaround for a specific bug, a business rule that isn't visible in the code shape.
 - No comments referencing a task, ticket, or PR number — that context belongs in the commit message and rots in the code otherwise.
 
 ## Testing

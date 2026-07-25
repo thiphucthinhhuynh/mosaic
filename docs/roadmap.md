@@ -8,40 +8,42 @@ Documentation (this file, `architecture.md`, relevant `docs/api/*`, and any new 
 
 ## Overview
 
-| # | Milestone | Phase | Status |
-|---|---|---|---|
-| 1 | Project Bootstrap & Walking Skeleton | Foundation | ⬜ |
-| 2 | Database Foundation & User Model | Foundation | ⬜ |
-| 3 | Auth: Signup & Login | MVP | ⬜ |
-| 4 | Store CRUD (Ownership Authorization) | MVP | ⬜ |
-| 5 | Item CRUD & Item Images | MVP | ⬜ |
-| 6 | Search & Filtering | MVP | ⬜ |
-| 7 | Social Interactions: Likes & Follows | MVP | ⬜ |
-| 8 | Reviews | MVP | ⬜ |
-| 9 | Frontend Cohesion & Profile Pages | MVP | ⬜ |
-| 10 | Testing Hardening | Production-readiness | ⬜ |
-| 11 | Security & Production Hardening | Production-readiness | ⬜ |
-| 12 | CI/CD Pipeline & Deployment | Production-readiness | ⬜ |
-| 13 | Observability: Logging & Request Tracing | Production-readiness (V2) | ⬜ |
-| 14 | Auth V2: Refresh Token Rotation | Production-readiness (V2) | ⬜ |
-| 15 | E2E Testing with Playwright | Production-readiness (V2) | ⬜ |
-| 16 | Production Readiness Review (Launch Checklist) | Launch | ⬜ |
+| #   | Milestone                                      | Phase                     | Status |
+| --- | ---------------------------------------------- | ------------------------- | ------ |
+| 0   | Project Bootstrap & Engineering Foundation     | Foundation                | 🟨     |
+| 1   | Database Foundation & User Model               | Foundation                | ⬜     |
+| 2   | Auth: Signup & Login                           | MVP                       | ⬜     |
+| 3   | Store CRUD (Ownership Authorization)           | MVP                       | ⬜     |
+| 4   | Item CRUD & Item Images                        | MVP                       | ⬜     |
+| 5   | Search & Filtering                             | MVP                       | ⬜     |
+| 6   | Social Interactions: Likes & Follows           | MVP                       | ⬜     |
+| 7   | Reviews                                        | MVP                       | ⬜     |
+| 8   | Frontend Cohesion & Profile Pages              | MVP                       | ⬜     |
+| 9   | Testing Hardening                              | Production-readiness      | ⬜     |
+| 10  | Security & Production Hardening                | Production-readiness      | ⬜     |
+| 11  | CI/CD Pipeline & Deployment                    | Production-readiness      | ⬜     |
+| 12  | Observability: Logging & Request Tracing       | Production-readiness (V2) | ⬜     |
+| 13  | Auth V2: Refresh Token Rotation                | Production-readiness (V2) | ⬜     |
+| 14  | E2E Testing with Playwright                    | Production-readiness (V2) | ⬜     |
+| 15  | Production Readiness Review (Launch Checklist) | Launch                    | ⬜     |
 
 ---
 
-### Milestone 1 — Project Bootstrap & Walking Skeleton
-**Status:** ⬜ Not Started
-**Goal:** Stand up the monorepo and tooling, and prove the full stack + CI wiring works before any real feature exists.
-**Features:** health-check endpoint; blank React app that calls it and displays status.
-**Database changes:** none.
+### Milestone 0 — Project Bootstrap & Engineering Foundation
+
+**Status:** 🟨 In Progress
+**Goal:** Stand up the monorepo, every piece of engineering tooling the project has committed to, and a walking skeleton proving the full stack + CI wiring works — before any real feature exists.
+**Features:** health-check endpoint; React page that calls it and displays live backend status.
+**Database changes:** none. No Prisma, no schema — the database layer is Milestone 1's job.
 **API endpoints:** `GET /api/v1/health`
-**Frontend pages:** single placeholder page showing API connectivity status.
-**Technical concepts introduced:** monorepo workspaces, TS path aliases, ESLint/Prettier/Husky/lint-staged/commitlint/.editorconfig, Vite config, Express+TS setup, GitHub Actions CI skeleton (lint → typecheck → build), Docker Compose skeleton.
-**Definition of Done:** fresh clone runs end-to-end per README; CI is green on a PR; frontend displays live backend health status; a badly-formatted or non-conventional commit is blocked locally by hooks.
+**Frontend pages:** single page showing API connectivity status.
+**Technical concepts introduced:** npm workspaces monorepo (`apps/web`, `apps/api`, `packages/shared`), TypeScript project setup for both apps, Vite, Express, ESLint (flat config) + Prettier, Husky + lint-staged, commitlint (Conventional Commits), .editorconfig, .gitignore, Docker Compose (PostgreSQL service, not yet consumed by the app), GitHub Actions CI (lint → typecheck → build), API response helper, async error wrapper, absolute import aliases.
+**Definition of Done:** fresh clone + `npm install` + `npm run dev` runs both apps; CI is green on a PR (lint, typecheck, build); frontend displays live backend health status; a badly-formatted file or non-conventional commit message is blocked locally by hooks; `.env.example` and `.gitignore` are present and accurate.
 
 ---
 
-### Milestone 2 — Database Foundation & User Model
+### Milestone 1 — Database Foundation & User Model
+
 **Status:** ⬜ Not Started
 **Goal:** Introduce Postgres + Prisma and the first entity, with migrations and seeding — no auth logic yet, just the data layer.
 **Features:** Prisma schema, seed script with fake users.
@@ -53,11 +55,12 @@ Documentation (this file, `architecture.md`, relevant `docs/api/*`, and any new 
 
 ---
 
-### Milestone 3 — Auth: Signup & Login
+### Milestone 2 — Auth: Signup & Login
+
 **Status:** ⬜ Not Started
 **Goal:** Registration and login per the V1 auth strategy (bcrypt + single JWT cookie, no refresh yet).
 **Features:** signup, login, logout, get-current-user.
-**Database changes:** none (schema already in place from Milestone 2).
+**Database changes:** none (schema already in place from Milestone 1).
 **API endpoints:** `POST /api/v1/auth/signup`, `POST /api/v1/auth/login`, `POST /api/v1/auth/logout`, `GET /api/v1/auth/me` — contract documented in [docs/api/authentication.md](api/authentication.md).
 **Frontend pages:** Signup page, Login page, auth context/hook, protected-route wrapper, nav shows logged-in state.
 **Technical concepts introduced:** bcrypt hashing, JWT sign/verify, httpOnly cookies, Zod schemas from the shared package, centralized error handler + `AppError` classes, async error wrapper, `requireAuth` middleware, React Hook Form + Zod resolver, TanStack Query mutations.
@@ -65,7 +68,8 @@ Documentation (this file, `architecture.md`, relevant `docs/api/*`, and any new 
 
 ---
 
-### Milestone 4 — Store CRUD (Ownership Authorization)
+### Milestone 3 — Store CRUD (Ownership Authorization)
+
 **Status:** ⬜ Not Started
 **Goal:** Users create and manage their own store(s); introduces the Ownership authorization tier.
 **Features:** create store, browse all stores (guest), view store detail (guest), update/delete own store.
@@ -77,7 +81,8 @@ Documentation (this file, `architecture.md`, relevant `docs/api/*`, and any new 
 
 ---
 
-### Milestone 5 — Item CRUD & Item Images
+### Milestone 4 — Item CRUD & Item Images
+
 **Status:** ⬜ Not Started
 **Goal:** Items nested under stores, with owner-only mutations derived through the store relationship.
 **Features:** create/read/update/delete items within a store, with associated images.
@@ -89,7 +94,8 @@ Documentation (this file, `architecture.md`, relevant `docs/api/*`, and any new 
 
 ---
 
-### Milestone 6 — Search & Filtering
+### Milestone 5 — Search & Filtering
+
 **Status:** ⬜ Not Started
 **Goal:** Make items discoverable.
 **Features:** search by name, filter by category, sort by price.
@@ -101,7 +107,8 @@ Documentation (this file, `architecture.md`, relevant `docs/api/*`, and any new 
 
 ---
 
-### Milestone 7 — Social Interactions: Likes & Follows
+### Milestone 6 — Social Interactions: Likes & Follows
+
 **Status:** ⬜ Not Started
 **Goal:** Add the two relationship-style features.
 **Features:** like/unlike items, follow/unfollow users.
@@ -113,7 +120,8 @@ Documentation (this file, `architecture.md`, relevant `docs/api/*`, and any new 
 
 ---
 
-### Milestone 8 — Reviews
+### Milestone 7 — Reviews
+
 **Status:** ⬜ Not Started
 **Goal:** Users review stores (rating + text), distinct from store ownership.
 **Features:** create/edit/delete a review, view a store's reviews and average rating.
@@ -125,7 +133,8 @@ Documentation (this file, `architecture.md`, relevant `docs/api/*`, and any new 
 
 ---
 
-### Milestone 9 — Frontend Cohesion & Profile Pages
+### Milestone 8 — Frontend Cohesion & Profile Pages
+
 **Status:** ⬜ Not Started
 **Goal:** No new backend features — tie the app together into something that feels finished. This milestone completes the MVP.
 **Features:** profile page (own stores, liked items, followers/following in tabs), global nav, consistent loading/error/empty states, responsive pass.
@@ -137,7 +146,8 @@ Documentation (this file, `architecture.md`, relevant `docs/api/*`, and any new 
 
 ---
 
-### Milestone 10 — Testing Hardening
+### Milestone 9 — Testing Hardening
+
 **Status:** ⬜ Not Started
 **Goal:** Close coverage gaps before moving into production concerns — no new product features.
 **Features:** audit every module for missing tests, especially authorization/validation edge cases; add frontend component tests for all forms and the like/follow hooks.
@@ -149,7 +159,8 @@ Documentation (this file, `architecture.md`, relevant `docs/api/*`, and any new 
 
 ---
 
-### Milestone 11 — Security & Production Hardening
+### Milestone 10 — Security & Production Hardening
+
 **Status:** ⬜ Not Started
 **Goal:** Apply the OWASP-aligned checklist from [docs/architecture.md](architecture.md), §10.
 **Features:** helmet headers, CORS allowlist, rate limiting on auth routes, CSRF protection for cookie auth, dependency scanning in CI, least-privilege DB role.
@@ -161,7 +172,8 @@ Documentation (this file, `architecture.md`, relevant `docs/api/*`, and any new 
 
 ---
 
-### Milestone 12 — CI/CD Pipeline & Deployment
+### Milestone 11 — CI/CD Pipeline & Deployment
+
 **Status:** ⬜ Not Started
 **Goal:** Ship to real infrastructure with an automated pipeline.
 **Features:** GitHub Actions pipeline (lint → typecheck → test → build → deploy); frontend on Vercel; backend on Render/Railway; managed Postgres (Neon/Supabase); real env-var validation on the deployed platforms.
@@ -173,7 +185,8 @@ Documentation (this file, `architecture.md`, relevant `docs/api/*`, and any new 
 
 ---
 
-### Milestone 13 — Observability: Logging & Request Tracing
+### Milestone 12 — Observability: Logging & Request Tracing
+
 **Status:** ⬜ Not Started
 **Goal:** Add the request-ID correlation deferred from the V1 logging design.
 **Features:** `pino-http` middleware, request ID generated per request and propagated through service/repository logs, included in error responses.
@@ -185,7 +198,8 @@ Documentation (this file, `architecture.md`, relevant `docs/api/*`, and any new 
 
 ---
 
-### Milestone 14 — Auth V2: Refresh Token Rotation
+### Milestone 13 — Auth V2: Refresh Token Rotation
+
 **Status:** ⬜ Not Started
 **Goal:** Replace the V1 single long-lived token with short-lived access + rotating refresh tokens and revocation.
 **Database changes:** create `refresh_tokens` table (user_id, token_hash, expires_at, revoked_at).
@@ -196,7 +210,8 @@ Documentation (this file, `architecture.md`, relevant `docs/api/*`, and any new 
 
 ---
 
-### Milestone 15 — E2E Testing with Playwright
+### Milestone 14 — E2E Testing with Playwright
+
 **Status:** ⬜ Not Started
 **Goal:** Lock down the golden paths now that the UI and flows are stable.
 **Features:** Playwright suite: signup→login, create store→create item, like an item, follow a user, leave a review.
@@ -208,7 +223,8 @@ Documentation (this file, `architecture.md`, relevant `docs/api/*`, and any new 
 
 ---
 
-### Milestone 16 — Production Readiness Review (Launch Checklist)
+### Milestone 15 — Production Readiness Review (Launch Checklist)
+
 **Status:** ⬜ Not Started
 **Goal:** Final polish pass, treated as a launch rather than a demo.
 **Features:** performance pass (bundle size, N+1 query audit via Prisma query logging), basic accessibility pass (labels, keyboard nav, contrast), README overhaul (architecture diagram, setup, live link, screenshots), documented DB backup/rollback approach.

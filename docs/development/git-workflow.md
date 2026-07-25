@@ -6,7 +6,7 @@ Mosaic is developed solo but follows a workflow that would work unchanged on a s
 
 Trunk-based, with short-lived branches per milestone (or per sub-task within a large milestone):
 
-- `main` is always in a working, deployable state once Milestone 12 (CI/CD) lands. Before that, "working" means "passes CI."
+- `main` is always in a working, deployable state once Milestone 11 (CI/CD) lands. Before that, "working" means "passes CI."
 - One branch per milestone: `milestone-03-auth-signup-login`, or a more granular `feature/`, `fix/`, `chore/`, `docs/` prefix for smaller units of work within a milestone:
   - `feature/<short-description>` — new functionality
   - `fix/<short-description>` — bug fix
@@ -27,6 +27,7 @@ Every commit message follows [Conventional Commits](https://www.conventionalcomm
 Types used in this project: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `style`, `perf`, `ci`.
 
 Examples:
+
 ```
 feat(auth): add signup and login endpoints with bcrypt + JWT cookie
 fix(items): reject negative price in item validation schema
@@ -65,7 +66,7 @@ Even solo, every milestone (or meaningful sub-unit of one) goes through a PR rat
 
 ## Tagging & Releases
 
-Once Milestone 12 (CI/CD & Deployment) lands, each deploy to `main` is tagged (`v0.1.0`, `v0.2.0`, ...) using semantic versioning, bumped according to the scale of what shipped. Before that milestone, tagging is not yet meaningful since there's no deployed artifact to version.
+Once Milestone 11 (CI/CD & Deployment) lands, each deploy to `main` is tagged (`v0.1.0`, `v0.2.0`, ...) using semantic versioning, bumped according to the scale of what shipped. Before that milestone, tagging is not yet meaningful since there's no deployed artifact to version.
 
 ## What This Workflow Deliberately Skips (for now)
 
