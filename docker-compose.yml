@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: mosaic-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mosaic
+      POSTGRES_PASSWORD: mosaic
+      POSTGRES_DB: mosaic
+    ports:
+      - '5432:5432'
+    volumes:
+      - mosaic-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U mosaic']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mosaic-postgres-data:

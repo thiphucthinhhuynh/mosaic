@@ -20,13 +20,15 @@ Organize both apps by **feature/domain** (`features/items`, `modules/reviews`, e
 ## Consequences
 
 ### Positive
+
 - A single feature's work stays within a single folder — directly serves the project's "one milestone at a time" delivery process, since each milestone's diff is naturally scoped to one or two module folders.
 - Barrel exports make each module's public API a reviewable, explicit list rather than an implicit convention — a PR reviewer (or future self) can see exactly what a module intends to expose by reading one file.
 - The same organizing principle applies to both frontend and backend, so the mental model transfers between them.
 
 ### Negative / Trade-offs
+
 - Barrel exports have a known downside at larger scale: they can slow down bundlers/type-checkers and obscure the true dependency graph, which is why some large codebases have moved away from them. At Mosaic's size (a handful of modules) this cost doesn't materialize, and the organizational benefit — an explicit, enforceable module boundary — outweighs it. Worth revisiting only if the project's scale changes substantially.
-- Nothing in the tooling *enforces* that other modules only import through the barrel (no ESLint rule for it in V1) — it's a convention that relies on discipline in code review for now. If violations start appearing, an ESLint import-boundary rule is a lightweight follow-up, not a new ADR.
+- Nothing in the tooling _enforces_ that other modules only import through the barrel (no ESLint rule for it in V1) — it's a convention that relies on discipline in code review for now. If violations start appearing, an ESLint import-boundary rule is a lightweight follow-up, not a new ADR.
 
 ## Related
 

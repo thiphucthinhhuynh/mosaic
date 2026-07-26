@@ -1,8 +1,8 @@
 # Mosaic
 
-![Status](https://img.shields.io/badge/status-planning-orange)
+![Status](https://img.shields.io/badge/status-in%20development-blue)
 
-[![Tech Stack](https://skillicons.dev/icons?i=typescript,react,express,prisma,postgresql,docker)](https://skillicons.dev)
+[![Tech Stack](https://skillicons.dev/icons?i=typescript,react,express,prisma,postgresql,tailwind,docker)](https://skillicons.dev)
 
 Mosaic is a full-stack marketplace application where users open stores, list items, and build a following through likes, follows, and reviews. It is a ground-up rebuild — architecture, codebase, and engineering practices are all new — inspired only by the **business domain** of an earlier personal project. No prior implementation was reused.
 
@@ -10,9 +10,8 @@ Mosaic is developed as a portfolio project demonstrating software-engineering pr
 
 ## Project Status
 
-🚧 Status: In Development
-
-🚧 **Pre-implementation.** Architecture, engineering rules, and the delivery roadmap are approved. No application code has been written yet — see [docs/roadmap.md](docs/roadmap.md) for the milestone currently in progress.
+🚧 **Status: In Development** <br>
+Milestone 0 (Project Bootstrap & Engineering Foundation) is complete — see [docs/roadmap.md](docs/roadmap.md) for what's next.
 
 ## Documentation
 
@@ -25,6 +24,7 @@ Mosaic is developed as a portfolio project demonstrating software-engineering pr
 | [docs/development/git-workflow.md](docs/development/git-workflow.md)         | Branching, commit, and review process                                   |
 | [docs/development/project-setup.md](docs/development/project-setup.md)       | Local environment setup                                                 |
 | [docs/api/authentication.md](docs/api/authentication.md)                     | Auth endpoint contracts                                                 |
+| [docs/api/health.md](docs/api/health.md)                                     | Health-check endpoint contract                                          |
 
 ## Tech Stack
 
@@ -43,7 +43,16 @@ Full rationale for each choice, including alternatives considered, is in [docs/a
 
 ## Getting Started
 
-Application code has not been implemented yet (see Project Status above). Once Milestone 0 (Project Bootstrap) lands, this section will be replaced with real, verified setup instructions. Until then, see [docs/development/project-setup.md](docs/development/project-setup.md) for the planned prerequisites and workflow.
+Prerequisites: Node.js 20+ (see `.nvmrc`), npm, Docker.
+
+```bash
+npm install
+cp apps/api/.env.example apps/api/.env
+cp apps/web/.env.example apps/web/.env
+npm run dev
+```
+
+This starts the API on `http://localhost:4000` and the web app on `http://localhost:5173`, which displays a live backend health check. There is no database yet — Prisma and PostgreSQL are introduced in Milestone 1. Full details, including every npm script, are in [docs/development/project-setup.md](docs/development/project-setup.md).
 
 ## Engineering Practices
 
