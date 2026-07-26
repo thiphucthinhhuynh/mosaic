@@ -10,7 +10,7 @@ Documentation (this file, `architecture.md`, relevant `docs/api/*`, and any new 
 
 | #   | Milestone                                      | Phase                     | Status |
 | --- | ---------------------------------------------- | ------------------------- | ------ |
-| 0   | Project Bootstrap & Engineering Foundation     | Foundation                | 🟨     |
+| 0   | Project Bootstrap & Engineering Foundation     | Foundation                | ✅     |
 | 1   | Database Foundation & User Model               | Foundation                | ⬜     |
 | 2   | Auth: Signup & Login                           | MVP                       | ⬜     |
 | 3   | Store CRUD (Ownership Authorization)           | MVP                       | ⬜     |
@@ -31,14 +31,22 @@ Documentation (this file, `architecture.md`, relevant `docs/api/*`, and any new 
 
 ### Milestone 0 — Project Bootstrap & Engineering Foundation
 
-**Status:** 🟨 In Progress
+**Status:** ✅ Done
 **Goal:** Stand up the monorepo, every piece of engineering tooling the project has committed to, and a walking skeleton proving the full stack + CI wiring works — before any real feature exists.
 **Features:** health-check endpoint; React page that calls it and displays live backend status.
 **Database changes:** none. No Prisma, no schema — the database layer is Milestone 1's job.
-**API endpoints:** `GET /api/v1/health`
+**API endpoints:** `GET /api/v1/health` — see [docs/api/health.md](../api/health.md).
 **Frontend pages:** single page showing API connectivity status.
-**Technical concepts introduced:** npm workspaces monorepo (`apps/web`, `apps/api`, `packages/shared`), TypeScript project setup for both apps, Vite, Express, ESLint (flat config) + Prettier, Husky + lint-staged, commitlint (Conventional Commits), .editorconfig, .gitignore, Docker Compose (PostgreSQL service, not yet consumed by the app), GitHub Actions CI (lint → typecheck → build), API response helper, async error wrapper, absolute import aliases.
-**Definition of Done:** fresh clone + `npm install` + `npm run dev` runs both apps; CI is green on a PR (lint, typecheck, build); frontend displays live backend health status; a badly-formatted file or non-conventional commit message is blocked locally by hooks; `.env.example` and `.gitignore` are present and accurate.
+**Technical concepts introduced:** npm workspaces monorepo (`apps/web`, `apps/api`, `packages/shared`), TypeScript project setup for both apps (path aliases via `tsconfig` `paths`, resolved natively by `tsx` in dev and by Vite's `resolve.alias` for the frontend), Vite, Express 5, ESLint 10 flat config + Prettier, Husky + lint-staged, commitlint (Conventional Commits), .editorconfig, .gitignore, Docker Compose (PostgreSQL service, not yet consumed by the app), GitHub Actions CI (lint → typecheck → build), API response helper, async error wrapper, a type-only `packages/shared` (the response envelope and `HealthStatus` types, consumed via `import type` so no build step is needed yet — see note below).
+**Definition of Done:**
+
+- [x] Fresh clone + `npm install` + `npm run dev` runs both apps.
+- [x] `npm run lint`, `npm run typecheck`, and `npm run build` all pass locally (the same commands the CI workflow runs) — the workflow file itself has not yet been proven green on an actual GitHub Actions run, since the repo hasn't been pushed to a remote yet.
+- [x] Frontend displays live backend health status — verified with a real browser (Playwright), rendering "Backend status: ok" with zero console errors.
+- [x] A badly-formatted/non-conventional commit is blocked locally by hooks — verified both live (a real commit was blocked by a lint-staged failure until fixed) and directly against commitlint.
+- [x] `.env.example` and `.gitignore` are present and accurate for both apps.
+
+**Notable engineering decisions made during implementation** (see [docs/architecture.md](../architecture.md) §19 for the full note): Express 5 (not 4) was installed, which natively forwards rejected-promise errors from async handlers to `next()` — the `asyncHandler` wrapper is kept anyway as an explicit, framework-independent convention, not because it's strictly required for correctness. `packages/shared` currently holds only type-only exports and has no build step; a real build (or dev/prod conditional exports) will be added once Milestone 2 introduces runtime Zod schemas.
 
 ---
 

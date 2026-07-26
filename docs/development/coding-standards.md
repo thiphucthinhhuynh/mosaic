@@ -33,7 +33,7 @@ These conventions apply to both `apps/web` and `apps/api` unless stated otherwis
 - Controllers stay thin: call exactly one service method, shape the response via the shared API response helper (`sendSuccess(res, data, meta?)`), never touch Prisma directly.
 - Services contain business logic and never reference `req`/`res` — this is what makes them unit-testable without spinning up Express.
 - Repositories are the _only_ layer that imports Prisma. If you're calling `prisma.*` outside a `*.repository.ts` file, it's in the wrong place.
-- Every async route handler is wrapped in the shared `asyncHandler` utility so promise rejections reach the centralized error middleware — this is not optional, it's how errors get handled at all.
+- Every async route handler is wrapped in the shared `asyncHandler` utility so promise rejections reach the centralized error middleware. This project runs on Express 5, which already forwards rejected promises to `next()` on its own — `asyncHandler` is kept as an explicit, framework-independent convention regardless, not because it's the only thing making error handling work on this specific Express version. See [docs/architecture.md](../architecture.md) §19.
 - Errors are thrown as one of the `AppError` subclasses (`NotFoundError`, `ValidationError`, `UnauthorizedError`, `ForbiddenError`, `ConflictError`) from services — never a bare `throw new Error(...)`, since the centralized handler maps subclasses to HTTP status codes.
 
 ## API Response Shape

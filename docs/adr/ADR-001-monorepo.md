@@ -20,11 +20,13 @@ Use a single repository (monorepo) containing `apps/web`, `apps/api`, and `packa
 ## Consequences
 
 ### Positive
+
 - A single `git clone` and `npm install` sets up the entire project — important for a portfolio piece a reviewer or interviewer might actually try to run.
 - `packages/shared` lets a Zod schema (and its inferred TypeScript type) be defined exactly once and imported by both apps, removing an entire class of bugs where frontend and backend validation silently drift apart — this was a real, if minor, gap in the domain-reference project's separate-repo setup.
 - One CI pipeline, one set of lint/format/commit rules, one place to look for anything.
 
 ### Negative / Trade-offs
+
 - Without discipline, a monorepo can develop hidden coupling between apps that a polyrepo's hard repository boundary would prevent by construction. Mitigated by [ADR-004](ADR-004-feature-based-architecture.md)'s barrel-export convention, which makes each module's public surface explicit.
 - npm workspaces is simpler to adopt than Nx/Turborepo but doesn't provide their build caching or task-graph features. For a two-app monorepo, that tooling would be overhead without a corresponding benefit — revisit only if the number of deployable packages grows meaningfully.
 
