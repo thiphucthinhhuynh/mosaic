@@ -5,11 +5,13 @@ node_modules/
 dist/
 build/
 
-# Environment variables
+# Environment variables — ignore every real .env variant, but keep the
+# committed .example templates (including per-environment ones like
+# .env.test.example) so onboarding docs and CI both work off real files.
 .env
-.env.local
-.env.*.local
+.env.*
 !.env.example
+!.env.*.example
 
 # Logs
 *.log
