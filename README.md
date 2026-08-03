@@ -51,6 +51,7 @@ npm install
 cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env
 docker compose up -d
+npm run db:generate -w @mosaic/api
 npm run db:migrate -w @mosaic/api
 npm run db:seed -w @mosaic/api
 npm run dev

@@ -53,13 +53,18 @@ Prisma lives inside `apps/api` (not at the repo root) — it's exclusively a bac
    ```
    Required backend variables (including `DATABASE_URL`) are validated with Zod at process startup (`apps/api/src/config/env.ts`) — the API refuses to start if one is missing or malformed. See [docs/architecture.md](../architecture.md) §14.
 4. `docker compose up -d` — starts PostgreSQL. On first run, an init script creates two databases: `mosaic` (dev) and `mosaic_test` (integration tests) — see `docker/postgres-init/`.
-5. Apply migrations and seed the dev database:
+5. Generate the Prisma Client:
+   ```bash
+   npm run db:generate -w @mosaic/api
+   ```
+   This writes TypeScript source into `apps/api/src/generated/prisma` (gitignored — every clone/CI run generates its own, see [ADR-003](../adr/ADR-003-prisma.md)). It's a separate, required step: `db:migrate` (below) only regenerates it as a side effect when there's an actual pending migration to apply, which won't be true on a fresh clone with an already-up-to-date schema.
+6. Apply migrations and seed the dev database:
    ```bash
    npm run db:migrate -w @mosaic/api
    npm run db:seed -w @mosaic/api
    ```
-6. `npm run dev` — starts `apps/api` (port 4000) and `apps/web` (port 5173) concurrently.
-7. Open `http://localhost:5173` — the page fetches `GET /api/v1/health` and displays the live backend status. Try `http://localhost:4000/api/v1/users/<id>` with one of the seeded users' ids (query them via `psql` or `prisma studio`) to see the data layer working end-to-end.
+7. `npm run dev` — starts `apps/api` (port 4000) and `apps/web` (port 5173) concurrently.
+8. Open `http://localhost:5173` — the page fetches `GET /api/v1/health` and displays the live backend status. Try `http://localhost:4000/api/v1/users/<id>` with one of the seeded users' ids (query them via `psql` or `prisma studio`) to see the data layer working end-to-end.
 
 ## Running Tests
 
