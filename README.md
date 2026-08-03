@@ -11,7 +11,7 @@ Mosaic is developed as a portfolio project demonstrating software-engineering pr
 ## Project Status
 
 🚧 **Status: In Development** <br>
-Milestone 0 (Project Bootstrap & Engineering Foundation) is complete — see [docs/roadmap.md](docs/roadmap.md) for what's next.
+Milestones 0–1 (Project Bootstrap, Database Foundation & User Model) are complete — see [docs/roadmap.md](docs/roadmap.md) for what's next.
 
 ## Documentation
 
@@ -25,6 +25,7 @@ Milestone 0 (Project Bootstrap & Engineering Foundation) is complete — see [do
 | [docs/development/project-setup.md](docs/development/project-setup.md)       | Local environment setup                                                 |
 | [docs/api/authentication.md](docs/api/authentication.md)                     | Auth endpoint contracts                                                 |
 | [docs/api/health.md](docs/api/health.md)                                     | Health-check endpoint contract                                          |
+| [docs/api/users.md](docs/api/users.md)                                       | Users endpoint contract                                                 |
 
 ## Tech Stack
 
@@ -49,10 +50,13 @@ Prerequisites: Node.js 20+ (see `.nvmrc`), npm, Docker.
 npm install
 cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env
+docker compose up -d
+npm run db:migrate -w @mosaic/api
+npm run db:seed -w @mosaic/api
 npm run dev
 ```
 
-This starts the API on `http://localhost:4000` and the web app on `http://localhost:5173`, which displays a live backend health check. There is no database yet — Prisma and PostgreSQL are introduced in Milestone 1. Full details, including every npm script, are in [docs/development/project-setup.md](docs/development/project-setup.md).
+This starts the API on `http://localhost:4000` and the web app on `http://localhost:5173`, which displays a live backend health check. `GET /api/v1/users/:id` now reads real seeded data from PostgreSQL through Prisma. Full details, including every npm script and the test-database setup, are in [docs/development/project-setup.md](docs/development/project-setup.md).
 
 ## Engineering Practices
 

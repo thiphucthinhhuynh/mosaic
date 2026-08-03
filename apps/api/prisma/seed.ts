@@ -1,6 +1,4 @@
-import { PrismaClient } from '../src/generated/prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '../src/lib/prisma';
 
 // Obviously not a real bcrypt hash (those look like `$2b$10$...`) — auth
 // isn't implemented until Milestone 2, so there's nothing real to hash yet.
