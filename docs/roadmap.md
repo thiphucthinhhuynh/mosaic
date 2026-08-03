@@ -11,7 +11,7 @@ Documentation (this file, `architecture.md`, relevant `docs/api/*`, and any new 
 | #   | Milestone                                      | Phase                     | Status |
 | --- | ---------------------------------------------- | ------------------------- | ------ |
 | 0   | Project Bootstrap & Engineering Foundation     | Foundation                | ✅     |
-| 1   | Database Foundation & User Model               | Foundation                | ⬜     |
+| 1   | Database Foundation & User Model               | Foundation                | ✅     |
 | 2   | Auth: Signup & Login                           | MVP                       | ⬜     |
 | 3   | Store CRUD (Ownership Authorization)           | MVP                       | ⬜     |
 | 4   | Item CRUD & Item Images                        | MVP                       | ⬜     |
@@ -52,14 +52,25 @@ Documentation (this file, `architecture.md`, relevant `docs/api/*`, and any new 
 
 ### Milestone 1 — Database Foundation & User Model
 
-**Status:** ⬜ Not Started
+**Status:** ✅ Done
 **Goal:** Introduce Postgres + Prisma and the first entity, with migrations and seeding — no auth logic yet, just the data layer.
 **Features:** Prisma schema, seed script with fake users.
-**Database changes:** create `users` table (id, username, email, password_hash, profile_pic, timestamps) with unique constraints on username/email.
-**API endpoints:** `GET /api/v1/users/:id` (public shape only — no password_hash/email) as a proof-of-life read.
+**Database changes:** created `users` table (id, username, email, password_hash, profile_pic, timestamps) with unique constraints on username/email. See [ADR-005](../adr/ADR-005-primary-key-strategy.md) for the id type.
+**API endpoints:** `GET /api/v1/users/:id` (public shape only — no password_hash/email) as a proof-of-life read. Contract: [docs/api/users.md](../api/users.md).
 **Frontend pages:** none.
-**Technical concepts introduced:** Prisma schema modeling, migrations, seeding, repository pattern, Docker Compose Postgres service, API response helper used for the first time.
-**Definition of Done:** `docker compose up` gives a working Postgres; `prisma migrate dev` + seed populates data; an integration test confirms the endpoint never leaks `password_hash`; CI runs this test against a real DB service container.
+**Technical concepts introduced:** Prisma schema modeling, migrations, seeding, repository pattern, Docker Compose Postgres service (plus a second `mosaic_test` database via a Postgres init script), API response helper used against a real database for the first time, a minimal `AppError`/`NotFoundError`/`ValidationError` hierarchy (pulled forward from Milestone 2 — see [docs/architecture.md](../architecture.md) §19), Zod-validated route params, Vitest + Supertest integration testing against a real test database, Vitest unit testing with a mocked repository layer.
+**Definition of Done:**
+
+- [x] `docker compose up` gives a working Postgres — **with one caveat**: Docker wasn't available in the sandbox this milestone was implemented in, so migration/seed/endpoint/test verification below used a temporary real (not mocked) embedded PostgreSQL server with matching credentials instead. `docker-compose.yml` itself was not executed end-to-end by me — see the verification section of my report for exactly what that means and what's still worth you confirming with real Docker.
+- [x] `prisma migrate dev` + seed populates data — executed for real, `users` table verified via direct `psql` query showing 3 real seeded rows with generated UUIDs.
+- [x] An integration test confirms the endpoint never leaks `password_hash`/`email` — 4 integration tests + 2 unit tests, all passing against a real (non-mocked) Postgres test database.
+- [x] CI runs this test against a real DB service container — `.github/workflows/ci.yml` updated with a `postgres` service container, migration step, and test step. This was pushed and run for real on GitHub Actions, which caught a genuine bug (see below) that the sandbox's manual verification had missed; after the fix, the identical CI-equivalent sequence was re-run locally from a truly clean state (`npm ci`, no pre-existing generated Prisma Client or build output) and passed end-to-end — the next actual GitHub Actions run should be green, but hasn't been independently re-observed by me.
+
+**Known limitations / follow-ups for Milestone 2:** username/email uniqueness is case-sensitive (see [docs/architecture.md](../architecture.md) §19); `packages/shared` still has no `User`-shaped type since nothing outside `apps/api` consumes one yet — the public-user shape used here (`{ id, username, profilePic }`) is defined locally in `apps/api/src/modules/users` and is a natural candidate to move into `packages/shared` once Milestone 2's auth responses need the identical shape.
+
+**Bug found and fixed after initial review:** running `npm run test` right after `npm run build` picked up stale compiled test files from `apps/api/dist/` (`tsc` was compiling `*.test.ts` into the build output, since `apps/api/tsconfig.json` had no exclusion for them) — Vitest then ran both the source and compiled copies of the same integration test concurrently against the same test database, causing a unique-constraint collision on the seeded username. Fixed by excluding `src/**/*.test.ts` from the `tsc` build (`apps/api/tsconfig.json`) and, as defense-in-depth, explicitly excluding `**/dist/**` in `apps/api/vitest.config.ts`. Verified by deleting the stale `dist/`, rebuilding, and re-running the full `lint → typecheck → test → build → format:check` sequence twice (including test-immediately-after-build, the exact order that surfaced the bug) — all green both times.
+
+**Second bug, caught by a real GitHub Actions run:** CI's Typecheck step failed with `Cannot find module '@/generated/prisma/client'`. Root cause: nothing in the pipeline — or in the documented local setup steps — ever ran `prisma generate`; every verification up to that point had a pre-existing generated client left over from earlier manual commands, masking the gap. `apps/api/src/generated/prisma` is gitignored by design (it's regenerated from `schema.prisma`, not version-controlled — see [ADR-003](../adr/ADR-003-prisma.md)), so a genuinely clean checkout (`npm ci` with no prior generate) had nothing to import. Fixed with an explicit "Generate Prisma Client" step in `.github/workflows/ci.yml` (after install, before lint/typecheck) and an explicit `npm run db:generate -w @mosaic/api` step added to the documented local setup in [docs/development/project-setup.md](../development/project-setup.md) and the README (`prisma migrate dev` only regenerates the client as a side effect when there's an actual pending migration, which is false on a fresh clone). Verified by removing `apps/api/src/generated/` and every `dist/`, running `npm ci` for real, reproducing the exact CI error, then running the corrected sequence (generate → lint → typecheck → migrate → test → build → format:check) clean end to end, plus a live check of both endpoints against freshly seeded data.
 
 ---
 

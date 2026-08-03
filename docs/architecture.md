@@ -143,10 +143,10 @@ See [ADR-002](adr/ADR-002-rest-api.md) for why REST was chosen over GraphQL/tRPC
 
 PostgreSQL, accessed via Prisma. The schema is introduced **incrementally**, one migration per feature milestone, rather than all at once — this keeps each migration reviewable and mirrors how a real feature branch would evolve the schema.
 
-Core entities (introduced across milestones, see [docs/roadmap.md](roadmap.md)):
+Core entities (introduced across milestones, see [docs/roadmap.md](roadmap.md); ✅ = migrated):
 
 ```
-User        (id, username, email, password_hash, profile_pic, timestamps)
+User ✅     (id, username, email, password_hash, profile_pic, timestamps)
 Store       (id, owner_id → User, name, description, location, timestamps)
 Item        (id, store_id → Store, name, description, price, quantity, category, timestamps)
 ItemImage   (id, item_id → Item, url)
@@ -154,6 +154,8 @@ Like        (id, user_id → User, item_id → Item, unique(user_id, item_id))
 Follow      (id, follower_id → User, followee_id → User, unique(follower_id, followee_id))
 Review      (id, user_id → User, store_id → Store, stars, body, timestamps, unique(user_id, store_id))
 ```
+
+`User.id` (and every future table's primary key) is a UUID, not an autoincrementing integer — see [ADR-005](adr/ADR-005-primary-key-strategy.md). Columns are `camelCase` in the Prisma schema and TypeScript, mapped to `snake_case` in the actual Postgres table (`@map`/`@@map`) — the conventional split between idiomatic JS/TS and idiomatic SQL.
 
 Not yet in the schema (planned, not built): `refresh_tokens` (V2 auth), any `role` column on `User` (only if/when RBAC becomes necessary).
 
@@ -249,3 +251,6 @@ Details discovered while building, worth recording so this document stays accura
 - **Express 5, not 4.** The version resolved at install time was Express 5, which changes one thing this document originally assumed: Express 5 natively forwards a rejected promise from an async handler to `next(err)`. The `asyncHandler` wrapper described in §11 and §17 is kept regardless, as an explicit, framework-independent convention — but it is no longer strictly required for correctness on this specific Express version, and that distinction matters if the team ever debates removing it.
 - **`packages/shared` is currently type-only.** Its first contents (the response envelope and `HealthStatus` types) are pure TypeScript types with no runtime code, consumed via `import type`. This means no build step exists for it yet — the package's `exports` field points straight at its TypeScript source, which is valid only because nothing at runtime actually imports from it. Milestone 2 introduces the first _runtime_ shared code (Zod schemas), at which point this package needs either a real build step or dev/prod conditional exports — that decision is deferred to when it's actually needed, not designed speculatively now.
 - **TypeScript path aliases (`@/*`) resolve differently per tool**, all pointed at the same `tsconfig.json` `paths` entries: Vite resolves them via `resolve.alias` in `vite.config.ts`; `tsx` (used for the API's dev server) resolves `tsconfig` `paths` natively. Compiled output (`apps/api`'s `tsc` build) does not rewrite these aliases — this is a known, accepted gap since nothing currently executes that compiled output (the API runs via `tsx` in both dev and, for now, would in production too). Milestone 11 (CI/CD & Deployment) is where the real production run strategy — continue with `tsx`, or add a compile step with alias-rewriting — gets decided with actual deployment constraints in hand.
+- **Prisma 7 requires an explicit driver adapter.** The version resolved at install time was Prisma 7, whose default `prisma-client` generator no longer bundles a query engine — `new PrismaClient()` with no arguments throws at runtime. `apps/api/src/lib/prisma.ts` passes a `@prisma/adapter-pg` instance (wrapping `pg`, both added as real dependencies) explicitly. Prisma 7 also moved the datasource URL out of `schema.prisma` and into `prisma.config.ts` (`datasource: { url: process.env.DATABASE_URL }`) — the schema file itself has no `url` field. Both are the current Prisma-recommended pattern, confirmed against what `prisma init` itself scaffolds, not an assumption carried over from older Prisma versions.
+- **The `AppError`/`NotFoundError`/`ValidationError` hierarchy from §11 arrived in Milestone 1, not Milestone 2 as originally scheduled.** `GET /api/v1/users/:id` needed real not-found and invalid-input handling to satisfy its own Definition of Done, so the minimal subset of the hierarchy this endpoint needs was built now (`apps/api/src/lib/errors.ts`); `UnauthorizedError`/`ForbiddenError`/`ConflictError` are still deferred to when auth (Milestone 2) and ownership (Milestone 3) actually need them.
+- **Known limitation: username/email uniqueness is case-sensitive.** Postgres's default collation means `"JohnDoe"` and `"johndoe"` can currently exist as two distinct rows — `@unique` alone doesn't prevent it. This doesn't matter yet (Milestone 1 has no signup path), but it will the moment Milestone 2 lets a real user pick a username. Fixing it means either the `citext` Postgres extension or lowercase-normalizing at the service layer before every write; that choice is deferred to Milestone 2, where it's actually exercised, rather than guessed at now.

@@ -12,7 +12,7 @@ An ADR is written for a decision that:
 
 Routine implementation choices (variable names, which utility function to use) do not need one — [docs/development/coding-standards.md](../development/coding-standards.md) covers those.
 
-**Note on timing:** ADRs are not only written _after_ something changes — the four below were written for foundational decisions made _before_ any code existed, because a decision doesn't stop being architecturally significant just because it happened on day one. Going forward, a new ADR is added whenever a decision meeting the criteria above is made, whether that's revising an existing choice or introducing a new one.
+**Note on timing:** ADRs are not only written _after_ something changes — ADR-001 through ADR-004 were written for foundational decisions made _before_ any code existed, because a decision doesn't stop being architecturally significant just because it happened on day one. Going forward, a new ADR is added whenever a decision meeting the criteria above is made, whether that's revising an existing choice or introducing a new one.
 
 ## Format
 
@@ -32,5 +32,6 @@ Each ADR follows the same structure: Status, Date, Context, Decision, Alternativ
 | [ADR-002](ADR-002-rest-api.md)                   | REST over GraphQL/tRPC for the API                 | Accepted |
 | [ADR-003](ADR-003-prisma.md)                     | Prisma as the ORM                                  | Accepted |
 | [ADR-004](ADR-004-feature-based-architecture.md) | Feature-based folder structure with barrel exports | Accepted |
+| [ADR-005](ADR-005-primary-key-strategy.md)       | UUID primary keys, not autoincrementing integers   | Accepted |
 
 Decisions **not yet** captured as their own ADR but documented directly in [docs/architecture.md](../architecture.md) because they were specified alongside the roadmap rather than debated as standalone architecture questions: the V1 auth strategy (bcrypt, no refresh token), the V1 authorization scope (no RBAC), and the V1 testing/logging scope. If any of these are revisited with real alternatives on the table — for example, when Milestone 13 introduces refresh tokens — that revision gets its own ADR at that time.

@@ -1,0 +1,29 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// id is a UUID, not an autoincrementing integer: this row is reachable via a
+// public endpoint (GET /api/v1/users/:id), and sequential integer IDs would
+// let anyone enumerate every user by walking 1, 2, 3, ... — see
+// docs/architecture.md §19.
+//
+// username/email uniqueness is case-sensitive (Postgres default collation).
+// "JohnDoe" and "johndoe" are currently allowed to coexist as distinct
+// accounts — a known limitation tracked for Milestone 2, when signup makes
+// this collision reachable for the first time. See docs/roadmap.md.
+model User {
+  id           String   @id @default(uuid())
+  username     String   @unique @db.VarChar(30)
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @map("password_hash")
+  profilePic   String?  @map("profile_pic")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
