@@ -2,7 +2,7 @@
 
 ![Status](https://img.shields.io/badge/status-in%20development-blue)
 
-[![Tech Stack](https://skillicons.dev/icons?i=typescript,react,express,prisma,postgresql,tailwind,docker)](https://skillicons.dev)
+[![Tech Stack](https://skillicons.dev/icons?i=typescript,react,express,prisma,postgresql,tailwind,githubactions,docker)](https://skillicons.dev)
 
 Mosaic is a full-stack marketplace application where users open stores, list items, and build a following through likes, follows, and reviews. It is a ground-up rebuild — architecture, codebase, and engineering practices are all new — inspired only by the **business domain** of an earlier personal project. No prior implementation was reused.
 
