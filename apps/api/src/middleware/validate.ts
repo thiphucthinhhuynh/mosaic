@@ -16,3 +16,17 @@ export function validateParams(schema: ZodType) {
     next();
   };
 }
+
+// Same idea for the body, except the parsed result replaces req.body — Zod
+// output is what downstream code should trust, not the raw input.
+export function validateBody(schema: ZodType) {
+  return (req: Request, _res: Response, next: NextFunction) => {
+    const result = schema.safeParse(req.body);
+    if (!result.success) {
+      next(new ValidationError('Invalid request body.', z.treeifyError(result.error)));
+      return;
+    }
+    req.body = result.data;
+    next();
+  };
+}
