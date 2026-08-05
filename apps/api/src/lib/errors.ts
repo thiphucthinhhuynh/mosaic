@@ -1,9 +1,7 @@
-// Minimal AppError hierarchy — only the subclasses this milestone's
-// GET /api/v1/users/:id endpoint actually needs (not-found, bad input).
-// UnauthorizedError/ForbiddenError/ConflictError are introduced when
-// Milestone 2 (auth) and Milestone 3 (ownership) actually need them.
-// See docs/architecture.md §11 for the full design and docs/roadmap.md
-// for why this arrived a milestone earlier than originally planned.
+// AppError hierarchy — see docs/architecture.md §11 for the full design.
+// UnauthorizedError/ConflictError arrive now, with Milestone 2 (auth); the
+// remaining subclass (ForbiddenError) is still deferred to Milestone 3,
+// when resource ownership is the first thing that actually needs it.
 export abstract class AppError extends Error {
   abstract readonly status: number;
   abstract readonly code: string;
@@ -25,4 +23,14 @@ export class NotFoundError extends AppError {
 export class ValidationError extends AppError {
   readonly status = 400;
   readonly code = 'VALIDATION_ERROR';
+}
+
+export class UnauthorizedError extends AppError {
+  readonly status = 401;
+  readonly code = 'UNAUTHORIZED';
+}
+
+export class ConflictError extends AppError {
+  readonly status = 409;
+  readonly code = 'CONFLICT';
 }
