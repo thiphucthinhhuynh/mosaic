@@ -36,6 +36,14 @@ These conventions apply to both `apps/web` and `apps/api` unless stated otherwis
 - Every async route handler is wrapped in the shared `asyncHandler` utility so promise rejections reach the centralized error middleware. This project runs on Express 5, which already forwards rejected promises to `next()` on its own — `asyncHandler` is kept as an explicit, framework-independent convention regardless, not because it's the only thing making error handling work on this specific Express version. See [docs/architecture.md](../architecture.md) §19.
 - Errors are thrown as one of the `AppError` subclasses (`NotFoundError`, `ValidationError`, `UnauthorizedError`, `ForbiddenError`, `ConflictError`) from services — never a bare `throw new Error(...)`, since the centralized handler maps subclasses to HTTP status codes.
 
+## Frontend Conventions
+
+- Server state (anything from the API) lives in TanStack Query, never copied into component state. Feature-level hooks (e.g. `useAuth`) wrap the query/mutation calls so components never call `fetch`/`apiClient` directly.
+- A React context + its hook are **never exported from the same file** as the component providing it. ESLint's `react-refresh/only-export-components` rule (needed for Vite's Fast Refresh to work reliably) flags a file that exports both a component and a non-component value — split into `*-context.ts` (context object + types), `use<Thing>.ts` (the hook), and `<Thing>Provider.tsx` (the component). See `apps/web/src/features/auth/` for the reference layout.
+- Forms use React Hook Form with `zodResolver`, validating against the exact same schema the backend uses (imported from `packages/shared`) — never a hand-rolled, separately-maintained set of validation rules on the frontend.
+- Class fields, not TypeScript parameter-property shorthand (`constructor(public readonly x: number)`), for any custom `Error` subclass on the frontend — `apps/web`'s `tsconfig` has `erasableSyntaxOnly` enabled, which rejects parameter properties because they require the compiler to generate constructor-body code, not just erase types. Declare the field and assign it in the constructor body instead.
+- Route components live in `routes/`, one file per page; reusable-but-not-feature-specific UI (e.g. `NavBar`) lives in `components/`; everything else lives inside the feature folder it belongs to.
+
 ## API Response Shape
 
 Every endpoint returns the same envelope:

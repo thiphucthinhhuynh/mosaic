@@ -27,6 +27,7 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://mosaic:mosaic@localhost:5432/mosaic_test
+      JWT_SECRET: test-jwt-secret-that-is-at-least-32-characters
 
     steps:
       - uses: actions/checkout@v4

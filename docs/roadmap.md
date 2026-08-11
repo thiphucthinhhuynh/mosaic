@@ -12,7 +12,7 @@ Documentation (this file, `architecture.md`, relevant `docs/api/*`, and any new 
 | --- | ---------------------------------------------- | ------------------------- | ------ |
 | 0   | Project Bootstrap & Engineering Foundation     | Foundation                | ✅     |
 | 1   | Database Foundation & User Model               | Foundation                | ✅     |
-| 2   | Auth: Signup & Login                           | MVP                       | ⬜     |
+| 2   | Auth: Signup & Login                           | MVP                       | ✅     |
 | 3   | Store CRUD (Ownership Authorization)           | MVP                       | ⬜     |
 | 4   | Item CRUD & Item Images                        | MVP                       | ⬜     |
 | 5   | Search & Filtering                             | MVP                       | ⬜     |
@@ -76,14 +76,28 @@ Documentation (this file, `architecture.md`, relevant `docs/api/*`, and any new 
 
 ### Milestone 2 — Auth: Signup & Login
 
-**Status:** ⬜ Not Started
+**Status:** ✅ Done
 **Goal:** Registration and login per the V1 auth strategy (bcrypt + single JWT cookie, no refresh yet).
 **Features:** signup, login, logout, get-current-user.
-**Database changes:** none (schema already in place from Milestone 1).
+**Database changes:** none (schema already in place from Milestone 1) — the `users.passwordHash` column, unused since Milestone 1, is real now.
 **API endpoints:** `POST /api/v1/auth/signup`, `POST /api/v1/auth/login`, `POST /api/v1/auth/logout`, `GET /api/v1/auth/me` — contract documented in [docs/api/authentication.md](api/authentication.md).
-**Frontend pages:** Signup page, Login page, auth context/hook, protected-route wrapper, nav shows logged-in state.
-**Technical concepts introduced:** bcrypt hashing, JWT sign/verify, httpOnly cookies, Zod schemas from the shared package, centralized error handler + `AppError` classes, async error wrapper, `requireAuth` middleware, React Hook Form + Zod resolver, TanStack Query mutations.
-**Definition of Done:** signup → login → page refresh keeps the session; logout clears it; duplicate email and wrong password return correctly-shaped errors; integration tests cover happy path + each validation/error case; unit tests cover the hashing and JWT helpers directly.
+**Frontend pages:** Signup page (`/signup`), Login page (`/login`), a protected Account page (`/account`) demonstrating `ProtectedRoute`, auth context/hook (`useAuth`), nav shows logged-in state.
+**Technical concepts introduced:** bcrypt hashing, JWT sign/verify, httpOnly cookies, Zod schemas from the shared package (`packages/shared` now ships real runtime code, not just types), centralized error handler + `AppError` classes (`UnauthorizedError`, `ConflictError` added), async error wrapper, `requireAuth` middleware, `validateBody` middleware, React Router (first introduced this milestone), TanStack Query (first introduced this milestone), React Hook Form + Zod resolver.
+**Definition of Done:**
+
+- [x] Signup → login → page refresh keeps the session — verified live in a real browser (Playwright): sign up, reload the page, still authenticated.
+- [x] Logout clears it — verified live: logout redirects away from the protected page, and a subsequent direct visit to `/account` redirects to `/login`.
+- [x] Duplicate email and wrong password return correctly-shaped errors — integration tests assert the exact envelope (`409 CONFLICT`, `401 UNAUTHORIZED`).
+- [x] Integration tests cover happy path + each validation/error case — 13 integration tests across signup/login/me/logout (invalid body, duplicate email, duplicate username case-insensitively, wrong password, unknown email, missing/garbage cookie).
+- [x] Unit tests cover the hashing and JWT helpers directly — 4 tests for `password.ts` (hash/verify round trip, wrong password, salt randomness, no plaintext leakage), 4 for `jwt.ts` (sign/verify round trip, tampered token, wrong secret, expired token).
+
+Full suite: `lint`, `typecheck`, `test` (27/27 passing), `build`, `format:check` all pass; live-verified with Playwright rather than assumed from the automated suite alone.
+
+**Conflicts found in existing implementation, fixed as part of this milestone (not scope changes — see full explanation in the implementation report):** `app.ts`'s CORS config was missing `credentials: true`, which would have silently broken cookie-based auth entirely; `users.repository.ts` had a locally-duplicated `PublicUser` type that Milestone 1 had already flagged for moving into `packages/shared` once auth needed the same shape.
+
+**New decision:** [ADR-006](../adr/ADR-006-case-insensitive-uniqueness.md) — signup uniqueness is checked case-insensitively at the application level (Prisma `mode: 'insensitive'`), resolving the case-sensitivity gap flagged in Milestone 1, without a schema/migration change.
+
+**Known limitations / follow-ups:** no admin capability to force-logout a user (no server-side revocation until Milestone 13's refresh tokens); the case-insensitive uniqueness check has a small theoretical race window between the check and the create (see ADR-006); no "confirm password" field on the signup form (matches the documented API contract exactly, which only has one password field).
 
 ---
 

@@ -11,7 +11,7 @@ Mosaic is developed as a portfolio project demonstrating software-engineering pr
 ## Project Status
 
 🚧 **Status: In Development** <br>
-Milestones 0–1 (Project Bootstrap, Database Foundation & User Model) are complete — see [docs/roadmap.md](docs/roadmap.md) for what's next.
+Milestones 0–2 (Project Bootstrap, Database Foundation & User Model, Authentication) are complete — see [docs/roadmap.md](docs/roadmap.md) for what's next.
 
 ## Documentation
 

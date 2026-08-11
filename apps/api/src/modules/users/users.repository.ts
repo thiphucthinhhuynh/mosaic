@@ -1,10 +1,5 @@
+import type { PublicUser } from '@mosaic/shared';
 import { prisma } from '@/lib/prisma';
-
-export type PublicUser = {
-  id: string;
-  username: string;
-  profilePic: string | null;
-};
 
 // Selects only the public-safe columns — passwordHash and email never leave
 // the database for this query, rather than being fetched and filtered out
