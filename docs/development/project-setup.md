@@ -1,8 +1,8 @@
 # Project Setup
 
-**Status:** verified as of Milestone 1 (Database Foundation & User Model). The steps below are the real, tested setup flow.
+**Status:** verified as of Milestone 2 (Authentication). The steps below are the real, tested setup flow.
 
-**One caveat, stated plainly:** the sandbox this milestone was implemented in did not have Docker available, so `docker compose up` itself was not executed directly. Every other step below — migrations, seeding, the running API, the test suite — was verified against a real (not mocked) PostgreSQL server using the exact same credentials `docker-compose.yml` produces. If you're following these steps with real Docker, `docker compose up -d` should produce an equivalent database; if something doesn't match, that's the one part of this doc that's inferred rather than directly confirmed.
+**One caveat, stated plainly:** the sandbox these milestones were implemented in did not have Docker available, so `docker compose up` itself was not executed directly. Every other step below — migrations, seeding, the running API, the test suite, the full signup/login/logout flow — was verified against a real (not mocked) PostgreSQL server using the exact same credentials `docker-compose.yml` produces. If you're following these steps with real Docker, `docker compose up -d` should produce an equivalent database; if something doesn't match, that's the one part of this doc that's inferred rather than directly confirmed.
 
 ## Prerequisites
 
@@ -33,7 +33,7 @@ mosaic/
 │   └── api/       # Express + TypeScript backend
 │       └── prisma/         # schema.prisma, migrations/, seed.ts
 ├── packages/
-│   └── shared/    # Types shared by both apps (Zod schemas arrive in Milestone 2)
+│   └── shared/    # Types + Zod schemas shared by both apps
 ├── docker/postgres-init/   # runs once, on first container init — creates the mosaic_test DB
 ├── docker-compose.yml      # PostgreSQL service (dev + test databases)
 ├── .github/workflows/ci.yml
@@ -109,19 +109,18 @@ Pre-commit (Husky + lint-staged) automatically lints and formats staged files; c
 
 **`apps/api/.env`**
 
-| Variable       | Purpose                               | Default in `.env.example`                          |
-| -------------- | ------------------------------------- | -------------------------------------------------- |
-| `NODE_ENV`     | `development` / `test` / `production` | `development`                                      |
-| `PORT`         | API server port                       | `4000`                                             |
-| `CORS_ORIGIN`  | Allowlisted frontend origin           | `http://localhost:5173`                            |
-| `DATABASE_URL` | Postgres connection string            | `postgresql://mosaic:mosaic@localhost:5432/mosaic` |
+| Variable       | Purpose                                      | Default in `.env.example`                                                                                                                              |
+| -------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `NODE_ENV`     | `development` / `test` / `production`        | `development`                                                                                                                                          |
+| `PORT`         | API server port                              | `4000`                                                                                                                                                 |
+| `CORS_ORIGIN`  | Allowlisted frontend origin                  | `http://localhost:5173`                                                                                                                                |
+| `DATABASE_URL` | Postgres connection string                   | `postgresql://mosaic:mosaic@localhost:5432/mosaic`                                                                                                     |
+| `JWT_SECRET`   | Signs/verifies the auth token (min 32 chars) | `replace-with-a-long-random-string-min-32-chars` — generate a real one with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
 
-**`apps/api/.env.test`** (copy from `.env.test.example`) — same shape; `DATABASE_URL` points at `mosaic_test` instead.
+**`apps/api/.env.test`** (copy from `.env.test.example`) — same shape; `DATABASE_URL` points at `mosaic_test` instead, and `JWT_SECRET` should be a **different** value from `.env`'s so a token issued in one environment can never verify in the other.
 
 **`apps/web/.env`**
 
 | Variable       | Purpose                     | Default in `.env.example` |
 | -------------- | --------------------------- | ------------------------- |
 | `VITE_API_URL` | Base URL the frontend calls | `http://localhost:4000`   |
-
-`JWT_SECRET` is **not yet used** — it arrives in Milestone 2 (auth), in the same PR that introduces the code that reads it.
