@@ -112,6 +112,18 @@ Full suite: `lint`, `typecheck`, `test` (27/27 passing), `build`, `format:check`
 **Technical concepts introduced:** `requireOwnership` middleware pattern with a resource loader, nested-resource REST design, Prisma relation queries, pagination on a list endpoint.
 **Definition of Done:** guests browse without auth; only the owner can edit/delete (403 otherwise, explicitly tested); list pagination works; barrel export (`index.ts`) established for this module as the template for the rest.
 
+**Sub-steps (implemented one at a time, in that order, on request):**
+
+- [x] **1. Database:** `Store` model & migration. Reconcile against any existing draft in `schema.prisma`, apply the migration, regenerate the Prisma client, optionally seed 1–2 stores. No API yet. — Done: migration `20260823070300_add_store` applied to both databases; `@@index([ownerId])` added (Postgres doesn't auto-index FK columns, and step 5 needs it) and `onDelete: Cascade` kept and explained in a schema comment. Seeded 2 stores (owned by `ada_lovelace`, `grace_hopper`); `linus_t` deliberately left storeless to cover the empty-list case later. Verified live: cascade delete actually removes a user's stores (tested in a rolled-back transaction), FK index confirmed via `\d stores`, seed re-run confirmed idempotent (0 new rows on the second run).
+- [ ] **2. Backend — public reads (Guest tier):** `GET /api/v1/stores` (paginated), `GET /api/v1/stores/:id`. New `stores` module (repository/service/controller/routes/barrel), following the `users` module pattern. Integration tests: happy path, pagination, 404, invalid id.
+- [ ] **3. Backend — create store (Authenticated tier):** `POST /api/v1/stores` behind `requireAuth`, new `packages/shared` Zod schema for the body. Tests: happy path (owner id from the JWT, not the body), validation errors, 401 without a session.
+- [ ] **4. Backend — `requireOwnership` + update/delete:** the generic resource-loader ownership middleware (architecture.md §7, first real use), then `PUT /api/v1/stores/:id` and `DELETE /api/v1/stores/:id`. Tests: owner succeeds, non-owner gets 403, unauthenticated gets 401, missing store gets 404.
+- [ ] **5. Backend — `GET /api/v1/users/me/stores`:** current user's own stores, behind `requireAuth`.
+- [ ] **6. Frontend — Stores list + Store detail pages:** guest-visible, TanStack Query hooks for step 2's endpoints.
+- [ ] **7. Frontend — Create Store form:** React Hook Form + Zod (shared schema from step 3), requires auth, redirects to `/login` if signed out.
+- [ ] **8. Frontend — Edit/Delete Store UI:** edit form (pre-filled), delete confirmation, both shown only to the store's owner.
+- [ ] **9. Full milestone verification & docs:** complete gate (lint/typecheck/test/build/format), live Playwright walkthrough (browse as guest → sign in → create → edit → delete a store), then update this roadmap entry, `docs/architecture.md`, a new `docs/api/stores.md`, and `README.md`.
+
 ---
 
 ### Milestone 4 — Item CRUD & Item Images

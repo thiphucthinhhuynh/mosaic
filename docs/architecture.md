@@ -147,7 +147,7 @@ Core entities (introduced across milestones, see [docs/roadmap.md](roadmap.md); 
 
 ```
 User ✅     (id, username, email, password_hash, profile_pic, timestamps)
-Store       (id, owner_id → User, name, description, location, timestamps)
+Store ✅    (id, owner_id → User, name, description, location, timestamps)
 Item        (id, store_id → Store, name, description, price, quantity, category, timestamps)
 ItemImage   (id, item_id → Item, url)
 Like        (id, user_id → User, item_id → Item, unique(user_id, item_id))

@@ -24,6 +24,30 @@ model User {
   profilePic   String?  @map("profile_pic")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
+  stores       Store[]
 
   @@map("users")
+}
+
+// onDelete: Cascade — deleting a user deletes their stores too. There's no
+// account-deletion feature yet, so this is currently unreachable, but it's a
+// deliberate choice (not the unspecified default) for when one exists:
+// orphaned stores with no owner aren't a state this app wants to support.
+//
+// @@index([ownerId]): Postgres does not automatically index a foreign-key
+// column, and GET /api/v1/users/me/stores (Milestone 3, step 5) will query
+// on exactly this column.
+model Store {
+  id          String   @id @default(uuid())
+  ownerId     String   @map("owner_id")
+  name        String   @db.VarChar(100)
+  description String?  @db.Text
+  location    String?  @db.VarChar(255)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId])
+  @@map("stores")
 }
