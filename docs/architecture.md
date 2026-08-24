@@ -38,20 +38,20 @@ See [ADR-001](adr/ADR-001-monorepo.md) for why a monorepo was chosen over separa
 
 ## 3. Tech Stack
 
-| Concern                     | Choice                                                       | Notes                                        |
-| --------------------------- | ------------------------------------------------------------ | -------------------------------------------- |
-| Frontend framework          | React + TypeScript                                           | Vite as build tool/dev server                |
-| Server state                | TanStack Query                                               | Caching, loading/error state for API calls   |
-| Forms & validation (client) | React Hook Form + Zod                                        | Shared Zod schemas with the backend          |
-| Styling                     | Tailwind CSS                                                 | Utility-first, no separate CSS-in-JS runtime |
-| Backend framework           | Express 5 + TypeScript                                       | Layered internally, see §5                   |
-| ORM / Database              | Prisma + PostgreSQL                                          | See [ADR-003](adr/ADR-003-prisma.md)         |
-| Auth                        | bcrypt (hashing) + JWT (httpOnly cookie)                     | V1 scope — see §7                            |
-| Logging                     | Pino                                                         | Structured JSON logs                         |
-| API style                   | REST, versioned (`/api/v1`)                                  | See [ADR-002](adr/ADR-002-rest-api.md)       |
-| Local infra                 | Docker Compose                                               | PostgreSQL container for local dev           |
-| CI/CD                       | GitHub Actions                                               | Lint, typecheck, test, build, deploy         |
-| Hosting                     | Vercel (web), Render/Railway (api), Neon/Supabase (Postgres) | See §16                                      |
+| Concern                     | Choice                                                       | Notes                                                                                  |
+| --------------------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| Frontend framework          | React + TypeScript                                           | Vite as build tool/dev server                                                          |
+| Server state                | TanStack Query                                               | Caching, loading/error state for API calls                                             |
+| Forms & validation (client) | React Hook Form + Zod                                        | Shared Zod schemas with the backend                                                    |
+| Styling                     | Vanilla CSS (CSS Modules)                                    | No utility framework, no CSS-in-JS runtime — see [ADR-007](adr/ADR-007-vanilla-css.md) |
+| Backend framework           | Express 5 + TypeScript                                       | Layered internally, see §5                                                             |
+| ORM / Database              | Prisma + PostgreSQL                                          | See [ADR-003](adr/ADR-003-prisma.md)                                                   |
+| Auth                        | bcrypt (hashing) + JWT (httpOnly cookie)                     | V1 scope — see §7                                                                      |
+| Logging                     | Pino                                                         | Structured JSON logs                                                                   |
+| API style                   | REST, versioned (`/api/v1`)                                  | See [ADR-002](adr/ADR-002-rest-api.md)                                                 |
+| Local infra                 | Docker Compose                                               | PostgreSQL container for local dev                                                     |
+| CI/CD                       | GitHub Actions                                               | Lint, typecheck, test, build, deploy                                                   |
+| Hosting                     | Vercel (web), Render/Railway (api), Neon/Supabase (Postgres) | See §16                                                                                |
 
 ## 4. Frontend Architecture
 
@@ -72,6 +72,7 @@ apps/web/src/
 - **Client-only UI state** (e.g. modal open/closed) stays local via `useState`/context; no Redux — the app has no state complex enough to justify it.
 - **Forms** use React Hook Form with a Zod resolver, using the _same_ Zod schema the backend validates against (imported from `packages/shared`).
 - **Routing** via React Router; a `ProtectedRoute` wrapper enforces the Authenticated tier (§8) client-side, mirroring — never replacing — the server-side check.
+- **Styling** is plain CSS via CSS Modules (`ComponentName.module.css`, co-located with the component that imports it) for anything component-scoped, plus the existing global `src/index.css` for resets and root-level CSS custom properties (colors, spacing). See [ADR-007](adr/ADR-007-vanilla-css.md).
 
 See [ADR-004](adr/ADR-004-feature-based-architecture.md) for why feature-based folders were chosen over layer-based ones, and why barrel exports (`index.ts`) are used as explicit module boundaries.
 

@@ -43,6 +43,7 @@ These conventions apply to both `apps/web` and `apps/api` unless stated otherwis
 - Forms use React Hook Form with `zodResolver`, validating against the exact same schema the backend uses (imported from `packages/shared`) — never a hand-rolled, separately-maintained set of validation rules on the frontend.
 - Class fields, not TypeScript parameter-property shorthand (`constructor(public readonly x: number)`), for any custom `Error` subclass on the frontend — `apps/web`'s `tsconfig` has `erasableSyntaxOnly` enabled, which rejects parameter properties because they require the compiler to generate constructor-body code, not just erase types. Declare the field and assign it in the constructor body instead.
 - Route components live in `routes/`, one file per page; reusable-but-not-feature-specific UI (e.g. `NavBar`) lives in `components/`; everything else lives inside the feature folder it belongs to.
+- Styling is plain CSS via CSS Modules, not a utility framework — see [ADR-007](../adr/ADR-007-vanilla-css.md). Component-scoped styles go in `ComponentName.module.css` next to the component (`import styles from './ComponentName.module.css'`, then `className={styles.something}`); only true global concerns (CSS resets, root-level custom properties for colors/spacing/fonts) belong in `src/index.css`. Don't add a class to `index.css` to style one specific component — that's what the component's own module file is for.
 
 ## API Response Shape
 

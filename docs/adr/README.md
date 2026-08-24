@@ -34,5 +34,6 @@ Each ADR follows the same structure: Status, Date, Context, Decision, Alternativ
 | [ADR-004](ADR-004-feature-based-architecture.md)  | Feature-based folder structure with barrel exports      | Accepted |
 | [ADR-005](ADR-005-primary-key-strategy.md)        | UUID primary keys, not autoincrementing integers        | Accepted |
 | [ADR-006](ADR-006-case-insensitive-uniqueness.md) | Case-insensitive signup uniqueness via query-time check | Accepted |
+| [ADR-007](ADR-007-vanilla-css.md)                 | Vanilla CSS (via CSS Modules), not Tailwind             | Accepted |
 
 Decisions **not yet** captured as their own ADR but documented directly in [docs/architecture.md](../architecture.md) because they were specified alongside the roadmap rather than debated as standalone architecture questions: the V1 auth strategy (bcrypt, no refresh token), the V1 authorization scope (no RBAC), and the V1 testing/logging scope. If any of these are revisited with real alternatives on the table — for example, when Milestone 13 introduces refresh tokens — that revision gets its own ADR at that time.

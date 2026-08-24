@@ -2,7 +2,7 @@
 
 ![Status](https://img.shields.io/badge/status-in%20development-blue)
 
-[![Tech Stack](https://skillicons.dev/icons?i=typescript,react,express,prisma,postgresql,tailwind,githubactions,docker)](https://skillicons.dev)
+[![Tech Stack](https://skillicons.dev/icons?i=typescript,react,express,prisma,postgresql,githubactions,docker)](https://skillicons.dev)
 
 Mosaic is a full-stack marketplace application where users open stores, list items, and build a following through likes, follows, and reviews. It is a ground-up rebuild — architecture, codebase, and engineering practices are all new — inspired only by the **business domain** of an earlier personal project. No prior implementation was reused.
 
@@ -31,7 +31,7 @@ Milestones 0–2 (Project Bootstrap, Database Foundation & User Model, Authentic
 
 | Layer          | Choice                                                                          |
 | -------------- | ------------------------------------------------------------------------------- |
-| Frontend       | React, TypeScript, Vite, TanStack Query, React Hook Form, Zod, Tailwind CSS     |
+| Frontend       | React, TypeScript, Vite, TanStack Query, React Hook Form, Zod, CSS Modules      |
 | Backend        | Node.js, TypeScript, Express                                                    |
 | Database       | PostgreSQL, Prisma ORM                                                          |
 | Auth           | bcrypt + JWT (httpOnly cookie)                                                  |
