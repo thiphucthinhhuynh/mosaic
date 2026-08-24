@@ -8,24 +8,21 @@ Documentation (this file, `architecture.md`, relevant `docs/api/*`, and any new 
 
 ## Overview
 
-| #   | Milestone                                      | Phase                     | Status |
-| --- | ---------------------------------------------- | ------------------------- | ------ |
-| 0   | Project Bootstrap & Engineering Foundation     | Foundation                | ✅     |
-| 1   | Database Foundation & User Model               | Foundation                | ✅     |
-| 2   | Auth: Signup & Login                           | MVP                       | ✅     |
-| 3   | Store CRUD (Ownership Authorization)           | MVP                       | ⬜     |
-| 4   | Item CRUD & Item Images                        | MVP                       | ⬜     |
-| 5   | Search & Filtering                             | MVP                       | ⬜     |
-| 6   | Social Interactions: Likes & Follows           | MVP                       | ⬜     |
-| 7   | Reviews                                        | MVP                       | ⬜     |
-| 8   | Frontend Cohesion & Profile Pages              | MVP                       | ⬜     |
-| 9   | Testing Hardening                              | Production-readiness      | ⬜     |
-| 10  | Security & Production Hardening                | Production-readiness      | ⬜     |
-| 11  | CI/CD Pipeline & Deployment                    | Production-readiness      | ⬜     |
-| 12  | Observability: Logging & Request Tracing       | Production-readiness (V2) | ⬜     |
-| 13  | Auth V2: Refresh Token Rotation                | Production-readiness (V2) | ⬜     |
-| 14  | E2E Testing with Playwright                    | Production-readiness (V2) | ⬜     |
-| 15  | Production Readiness Review (Launch Checklist) | Launch                    | ⬜     |
+| #   | Milestone                                      | Phase                | Status |
+| --- | ---------------------------------------------- | -------------------- | ------ |
+| 0   | Project Bootstrap & Engineering Foundation     | Foundation           | ✅     |
+| 1   | Database Foundation & User Model               | Foundation           | ✅     |
+| 2   | Auth: Signup & Login                           | MVP                  | ✅     |
+| 3   | Store CRUD (Ownership Authorization)           | MVP                  | ⬜     |
+| 4   | Item CRUD & Item Images                        | MVP                  | ⬜     |
+| 5   | Search & Filtering                             | MVP                  | ⬜     |
+| 6   | Social Interactions: Likes & Follows           | MVP                  | ⬜     |
+| 7   | Reviews                                        | MVP                  | ⬜     |
+| 8   | Frontend Cohesion & Profile Pages              | MVP                  | ⬜     |
+| 9   | Testing Hardening                              | Production-readiness | ⬜     |
+| 10  | Security & Production Hardening                | Production-readiness | ⬜     |
+| 11  | CI/CD Pipeline & Deployment                    | Production-readiness | ⬜     |
+| 12  | Production Readiness Review (Launch Checklist) | Launch               | ⬜     |
 
 ---
 
@@ -97,7 +94,7 @@ Full suite: `lint`, `typecheck`, `test` (27/27 passing), `build`, `format:check`
 
 **New decision:** [ADR-006](adr/ADR-006-case-insensitive-uniqueness.md) — signup uniqueness is checked case-insensitively at the application level (Prisma `mode: 'insensitive'`), resolving the case-sensitivity gap flagged in Milestone 1, without a schema/migration change.
 
-**Known limitations / follow-ups:** no admin capability to force-logout a user (no server-side revocation until Milestone 13's refresh tokens); the case-insensitive uniqueness check has a small theoretical race window between the check and the create (see ADR-006); no "confirm password" field on the signup form (matches the documented API contract exactly, which only has one password field).
+**Known limitations / follow-ups:** no admin capability to force-logout a user — this project's auth design has no refresh-token/session table, so there's no server-side mechanism to revoke a still-valid token before it expires (see [docs/architecture.md](architecture.md) §6, a permanent V1-only design choice, not a deferred one); the case-insensitive uniqueness check has a small theoretical race window between the check and the create (see ADR-006); no "confirm password" field on the signup form (matches the documented API contract exactly, which only has one password field).
 
 ---
 
@@ -230,45 +227,7 @@ Full suite: `lint`, `typecheck`, `test` (27/27 passing), `build`, `format:check`
 
 ---
 
-### Milestone 12 — Observability: Logging & Request Tracing
-
-**Status:** ⬜ Not Started
-**Goal:** Add the request-ID correlation deferred from the V1 logging design.
-**Features:** `pino-http` middleware, request ID generated per request and propagated through service/repository logs, included in error responses.
-**Database changes:** none.
-**API endpoints:** none new (error responses gain a `requestId` field).
-**Frontend pages:** none new.
-**Technical concepts introduced:** context propagation (e.g. `AsyncLocalStorage`) without threading an ID through every function signature.
-**Definition of Done:** every log line for a single request shares one ID, verifiable by grep; error responses expose that ID; a deliberately triggered error shows the same ID in the API response and the server log.
-
----
-
-### Milestone 13 — Auth V2: Refresh Token Rotation
-
-**Status:** ⬜ Not Started
-**Goal:** Replace the V1 single long-lived token with short-lived access + rotating refresh tokens and revocation.
-**Database changes:** create `refresh_tokens` table (user_id, token_hash, expires_at, revoked_at).
-**API endpoints:** `POST /api/v1/auth/refresh`; logout now revokes the token server-side instead of just clearing a cookie.
-**Frontend pages:** none new — silent refresh handled transparently via a fetch/query interceptor on 401.
-**Technical concepts introduced:** refresh rotation (new refresh token issued on every use, old one invalidated), reuse detection (a replayed old token kills the whole session family), short access-token lifetime.
-**Definition of Done:** access token expires quickly and refreshes silently; logout provably revokes server-side (reuse after logout is rejected, tested); simulated token reuse is detected and the session is killed.
-
----
-
-### Milestone 14 — E2E Testing with Playwright
-
-**Status:** ⬜ Not Started
-**Goal:** Lock down the golden paths now that the UI and flows are stable.
-**Features:** Playwright suite: signup→login, create store→create item, like an item, follow a user, leave a review.
-**Database changes:** none (test-only seed/reset for E2E isolation).
-**API endpoints:** none new.
-**Frontend pages:** none new.
-**Technical concepts introduced:** Playwright fixtures, DB reset strategy per E2E run, headless browser execution in GitHub Actions as a separate CI job.
-**Definition of Done:** all golden-path tests pass 3 consecutive CI runs with no flakiness; E2E runs as its own job, kept out of the fast unit/integration feedback loop; README documents running them locally.
-
----
-
-### Milestone 15 — Production Readiness Review (Launch Checklist)
+### Milestone 12 — Production Readiness Review (Launch Checklist)
 
 **Status:** ⬜ Not Started
 **Goal:** Final polish pass, treated as a launch rather than a demo.
@@ -283,10 +242,13 @@ Full suite: `lint`, `typecheck`, `test` (27/27 passing), `build`, `format:check`
 
 ## Deliberately Out of Scope
 
-Not on the critical path, consistent with the YAGNI reasoning in [docs/architecture.md](architecture.md) §18:
+Not on the critical path, consistent with the YAGNI reasoning in [docs/architecture.md](architecture.md) §18. This project has a single V1 scope — nothing below is "coming in V2"; these were considered and are permanently excluded unless a real need for one shows up later:
 
 - Admin role + RBAC
 - Real file upload (S3/Cloudinary) in place of image URLs
 - Real-time notifications (WebSockets)
+- Refresh token rotation / server-side session revocation — V1 auth's single long-lived JWT cookie is the permanent design, not a placeholder for a later upgrade (see [docs/architecture.md](architecture.md) §6)
+- Per-request correlation IDs / distributed log tracing — structured logging (Pino) ships without this; not planned
+- End-to-end browser tests (Playwright) — the project relies on unit + integration tests only (see [docs/architecture.md](architecture.md) §15)
 
 These may be worth a "what I'd build next" note in the README once the core roadmap is complete, but are not planned milestones.

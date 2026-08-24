@@ -110,12 +110,10 @@ apps/api/src/
 
 **Decision:** email/password signup and login. Passwords hashed with **bcrypt**. On successful login, a single **JWT access token** is issued and delivered as an `httpOnly`, `Secure`, `SameSite=Lax` cookie. Logout clears the cookie client-side.
 
-**V1 scope — deliberately excludes:**
+**Deliberately excluded, permanently — not a placeholder for a later upgrade:**
 
 - Refresh tokens / rotation. The access token is the only credential; its lifetime (e.g. 7 days) is set long enough to be usable without a refresh flow.
-- Server-side revocation. Because there is no refresh-token table yet, there is no way to force-invalidate a still-valid token before it expires (e.g. on logout or account compromise). This is an accepted, explicit limitation of V1, not an oversight.
-
-**Planned V2 addition:** short-lived access token + rotating refresh token with a `refresh_tokens` table enabling real server-side revocation. Tracked as a dedicated milestone in [docs/roadmap.md](roadmap.md) — not built until then.
+- Server-side revocation. Because there is no refresh-token table, there is no way to force-invalidate a still-valid token before it expires (e.g. on logout or account compromise). This is an accepted, explicit limitation of the design, not an oversight — see [docs/roadmap.md](roadmap.md)'s Deliberately Out of Scope section.
 
 ## 7. Authorization Strategy (V1)
 
@@ -158,7 +156,7 @@ Review      (id, user_id → User, store_id → Store, stars, body, timestamps, 
 
 `User.id` (and every future table's primary key) is a UUID, not an autoincrementing integer — see [ADR-005](adr/ADR-005-primary-key-strategy.md). Columns are `camelCase` in the Prisma schema and TypeScript, mapped to `snake_case` in the actual Postgres table (`@map`/`@@map`) — the conventional split between idiomatic JS/TS and idiomatic SQL.
 
-Not yet in the schema (planned, not built): `refresh_tokens` (V2 auth), any `role` column on `User` (only if/when RBAC becomes necessary).
+Not in the schema, deliberately: a `refresh_tokens` table (see §6 — this project's auth design has no refresh-token mechanism at all, not a deferred one) and any `role` column on `User` (only if/when RBAC becomes necessary — see [docs/roadmap.md](roadmap.md)'s Deliberately Out of Scope section).
 
 See [ADR-003](adr/ADR-003-prisma.md) for why Prisma was chosen over Sequelize/Drizzle/TypeORM.
 
@@ -192,7 +190,7 @@ Applied progressively as milestones land (see [docs/roadmap.md](roadmap.md) for 
 ## 13. Logging (V1)
 
 - `pino` for structured JSON logs at the application level: startup/shutdown, database connectivity, and every error caught by the centralized error handler, each with a level (`info`/`warn`/`error`) and relevant context.
-- **Not yet included:** per-request correlation IDs (`pino-http` + propagation through service calls). This is a deliberate V1 simplification — logs are structured but not yet traceable end-to-end across a single request. Planned as its own milestone (see [docs/roadmap.md](roadmap.md)).
+- **Not included, deliberately:** per-request correlation IDs (`pino-http` + propagation through service calls). Logs are structured but not traceable end-to-end across a single request — an accepted trade-off, not a gap being tracked toward a later milestone (see [docs/roadmap.md](roadmap.md)'s Deliberately Out of Scope section).
 
 ## 14. Environment Configuration
 
@@ -207,7 +205,7 @@ Two layers in V1:
 - **Unit tests** (Vitest) — services, utilities, Zod schemas, isolated React hooks/components.
 - **Integration tests** (Vitest + Supertest) — full route → middleware → service → real test-database round trips, covering auth, ownership, and validation for every module.
 
-**Not yet included:** end-to-end browser tests (Playwright). Deferred until the UI and core flows are stable enough that E2E tests won't be rewritten as the UI churns — tracked as its own milestone.
+**Not included, deliberately:** end-to-end browser tests (Playwright). Unit + integration coverage is the project's testing strategy in full, not a first phase toward E2E — see [docs/roadmap.md](roadmap.md)'s Deliberately Out of Scope section.
 
 CI blocks merges on failing tests. Coverage is tracked but not enforced as a hard gate — testing the actual risk areas (auth, ownership, validation boundaries) matters more than a coverage percentage.
 
@@ -232,18 +230,11 @@ CI blocks merges on failing tests. Coverage is tracked but not enforced as a har
 
 Full conventions are documented in [docs/development/coding-standards.md](development/coding-standards.md).
 
-## 18. Versioning Note: V1 vs. V2
+## 18. Deliberate Exclusions
 
-This document describes **V1 scope** as currently approved. Several items are intentionally deferred rather than omitted by oversight:
+This document describes the project's **one and only planned scope** — there is no separate "V2" tier of features waiting behind it. A handful of things were considered and deliberately excluded rather than omitted by oversight (refresh-token rotation, admin RBAC, per-request log correlation, Playwright E2E tests, among others); the full list and reasoning for each lives in one place, [docs/roadmap.md](roadmap.md)'s **Deliberately Out of Scope** section, rather than being duplicated here.
 
-| Deferred item                       | Reason                                                                                     | Tracked in                                       |
-| ----------------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------ |
-| Refresh token rotation + revocation | Simpler auth flow ships first, correctly, before adding rotation complexity                | [docs/roadmap.md](roadmap.md)                    |
-| Admin RBAC                          | No current use case; avoiding speculative design (YAGNI)                                   | [docs/roadmap.md](roadmap.md) (optional/stretch) |
-| Request-ID log correlation          | Structured logging ships first; correlation is a deliberate follow-up                      | [docs/roadmap.md](roadmap.md)                    |
-| Playwright E2E tests                | Deferred until UI/flows stabilize, to avoid rewriting brittle tests during active UI churn | [docs/roadmap.md](roadmap.md)                    |
-
-When any of these are implemented, this document will be updated in the same milestone as the code, per the project's documentation rules.
+If any of these is ever actually built, that's a real scope change: it gets a new milestone in the roadmap and, if it involves a genuine architectural decision, its own ADR — the same process as any other feature, not a pre-approved "phase 2."
 
 ## 19. Implementation Notes
 
