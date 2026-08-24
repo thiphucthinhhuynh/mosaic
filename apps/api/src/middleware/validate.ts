@@ -30,3 +30,21 @@ export function validateBody(schema: ZodType) {
     next();
   };
 }
+
+// Query params can't use the same req.body-replacement trick: Express 5 made
+// req.query a getter with no setter, so assigning to it is silently a no-op
+// (verified directly — no error, but the reassignment never sticks). The
+// validated/coerced result goes on res.locals.query instead; route handlers
+// read it via `Response<unknown, { query: z.infer<typeof schema> }>`. See
+// docs/architecture.md §19.
+export function validateQuery(schema: ZodType) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const result = schema.safeParse(req.query);
+    if (!result.success) {
+      next(new ValidationError('Invalid query parameters.', z.treeifyError(result.error)));
+      return;
+    }
+    res.locals.query = result.data;
+    next();
+  };
+}
