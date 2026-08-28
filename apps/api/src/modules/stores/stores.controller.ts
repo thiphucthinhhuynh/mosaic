@@ -1,9 +1,15 @@
 import type { Request, Response } from 'express';
 import type { z } from 'zod';
-import type { CreateStoreInput } from '@mosaic/shared';
+import type { CreateStoreInput, UpdateStoreInput } from '@mosaic/shared';
 import { asyncHandler } from '@/lib/asyncHandler';
 import { sendSuccess } from '@/lib/response';
-import { listStores, getStoreById, createStoreForOwner } from '@/modules/stores/stores.service';
+import {
+  listStores,
+  getStoreById,
+  createStoreForOwner,
+  updateStore,
+  deleteStore,
+} from '@/modules/stores/stores.service';
 import type { storeIdParamsSchema, storesListQuerySchema } from '@/modules/stores/stores.schema';
 
 type StoreIdParams = z.infer<typeof storeIdParamsSchema>;
@@ -35,5 +41,21 @@ export const createStoreHandler = asyncHandler(
     // handler in stores.routes.ts.
     const store = await createStoreForOwner(req.user!.id, req.body);
     sendSuccess(res, store, 201);
+  },
+);
+
+export const updateStoreHandler = asyncHandler(
+  async (req: Request<StoreIdParams, unknown, UpdateStoreInput>, res: Response) => {
+    // Existence and ownership are already enforced by requireOwnership,
+    // which always runs before this handler in stores.routes.ts.
+    const store = await updateStore(req.params.id, req.body);
+    sendSuccess(res, store);
+  },
+);
+
+export const deleteStoreHandler = asyncHandler(
+  async (req: Request<StoreIdParams>, res: Response) => {
+    await deleteStore(req.params.id);
+    sendSuccess(res, null);
   },
 );

@@ -3,5 +3,5 @@ export type { HealthStatus } from './types/health';
 export type { PublicUser } from './types/user';
 export { signupSchema, loginSchema } from './schemas/auth';
 export type { SignupInput, LoginInput } from './schemas/auth';
-export { createStoreSchema } from './schemas/store';
-export type { CreateStoreInput } from './schemas/store';
+export { createStoreSchema, updateStoreSchema } from './schemas/store';
+export type { CreateStoreInput, UpdateStoreInput } from './schemas/store';

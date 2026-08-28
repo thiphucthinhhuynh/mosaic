@@ -213,4 +213,138 @@ describe('stores routes', () => {
       expect(res.body.error.code).toBe('VALIDATION_ERROR');
     });
   });
+
+  describe('PUT /api/v1/stores/:id', () => {
+    let storeOwnerAgent: ReturnType<typeof request.agent>;
+    let storeId: string;
+
+    beforeAll(async () => {
+      storeOwnerAgent = request.agent(app);
+      const storeOwnerId = await signupViaApi(storeOwnerAgent, 'stores_put_owner');
+      createdUserIds.push(storeOwnerId);
+
+      const store = await prisma.store.create({
+        data: { ownerId: storeOwnerId, name: 'Original Name', location: 'Old Town' },
+      });
+      storeId = store.id;
+    });
+
+    it('updates the store when the requester is the owner', async () => {
+      const res = await storeOwnerAgent
+        .put(`/api/v1/stores/${storeId}`)
+        .send({ name: 'Updated Name', location: 'New Town' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.error).toBeNull();
+      expect(res.body.data).toMatchObject({ name: 'Updated Name', location: 'New Town' });
+
+      const stored = await prisma.store.findUnique({ where: { id: storeId } });
+      expect(stored?.name).toBe('Updated Name');
+    });
+
+    it('returns 403 when the requester is not the owner', async () => {
+      const otherAgent = request.agent(app);
+      const otherUserId = await signupViaApi(otherAgent, 'stores_put_other');
+      createdUserIds.push(otherUserId);
+
+      const res = await otherAgent.put(`/api/v1/stores/${storeId}`).send({ name: 'Hijacked Name' });
+
+      expect(res.status).toBe(403);
+      expect(res.body.data).toBeNull();
+      expect(res.body.error.code).toBe('FORBIDDEN');
+    });
+
+    it('returns 401 when not authenticated', async () => {
+      const res = await request(app)
+        .put(`/api/v1/stores/${storeId}`)
+        .send({ name: 'No Session Store' });
+
+      expect(res.status).toBe(401);
+      expect(res.body.data).toBeNull();
+      expect(res.body.error.code).toBe('UNAUTHORIZED');
+    });
+
+    it('returns 404 when the store does not exist', async () => {
+      const res = await storeOwnerAgent
+        .put('/api/v1/stores/00000000-0000-0000-0000-000000000000')
+        .send({ name: 'Does Not Matter' });
+
+      expect(res.status).toBe(404);
+      expect(res.body.data).toBeNull();
+      expect(res.body.error.code).toBe('NOT_FOUND');
+    });
+
+    it('returns 400 for an empty update body', async () => {
+      const res = await storeOwnerAgent.put(`/api/v1/stores/${storeId}`).send({});
+
+      expect(res.status).toBe(400);
+      expect(res.body.data).toBeNull();
+      expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    });
+  });
+
+  describe('DELETE /api/v1/stores/:id', () => {
+    let storeOwnerAgent: ReturnType<typeof request.agent>;
+    let storeOwnerId: string;
+
+    beforeAll(async () => {
+      storeOwnerAgent = request.agent(app);
+      storeOwnerId = await signupViaApi(storeOwnerAgent, 'stores_delete_owner');
+      createdUserIds.push(storeOwnerId);
+    });
+
+    it('returns 403 when the requester is not the owner', async () => {
+      const store = await prisma.store.create({
+        data: { ownerId: storeOwnerId, name: 'Protected Store' },
+      });
+      const otherAgent = request.agent(app);
+      const otherUserId = await signupViaApi(otherAgent, 'stores_delete_other');
+      createdUserIds.push(otherUserId);
+
+      const res = await otherAgent.delete(`/api/v1/stores/${store.id}`);
+
+      expect(res.status).toBe(403);
+      expect(res.body.data).toBeNull();
+      expect(res.body.error.code).toBe('FORBIDDEN');
+
+      const stillExists = await prisma.store.findUnique({ where: { id: store.id } });
+      expect(stillExists).not.toBeNull();
+    });
+
+    it('returns 401 when not authenticated', async () => {
+      const store = await prisma.store.create({
+        data: { ownerId: storeOwnerId, name: 'No Session Store' },
+      });
+
+      const res = await request(app).delete(`/api/v1/stores/${store.id}`);
+
+      expect(res.status).toBe(401);
+      expect(res.body.data).toBeNull();
+      expect(res.body.error.code).toBe('UNAUTHORIZED');
+    });
+
+    it('returns 404 when the store does not exist', async () => {
+      const res = await storeOwnerAgent.delete(
+        '/api/v1/stores/00000000-0000-0000-0000-000000000000',
+      );
+
+      expect(res.status).toBe(404);
+      expect(res.body.data).toBeNull();
+      expect(res.body.error.code).toBe('NOT_FOUND');
+    });
+
+    it('deletes the store when the requester is the owner', async () => {
+      const store = await prisma.store.create({
+        data: { ownerId: storeOwnerId, name: 'Deletable Store' },
+      });
+
+      const res = await storeOwnerAgent.delete(`/api/v1/stores/${store.id}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({ data: null, error: null });
+
+      const stored = await prisma.store.findUnique({ where: { id: store.id } });
+      expect(stored).toBeNull();
+    });
+  });
 });

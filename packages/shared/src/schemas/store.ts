@@ -11,3 +11,13 @@ export const createStoreSchema = z.object({
   location: z.string().max(255).optional(),
 });
 export type CreateStoreInput = z.infer<typeof createStoreSchema>;
+
+// Same field constraints as createStoreSchema, all optional — a PUT can
+// change any subset of fields. Rejects an empty body outright rather than
+// silently accepting a no-op update.
+export const updateStoreSchema = createStoreSchema
+  .partial()
+  .refine((data) => Object.keys(data).length > 0, {
+    message: 'At least one field must be provided.',
+  });
+export type UpdateStoreInput = z.infer<typeof updateStoreSchema>;

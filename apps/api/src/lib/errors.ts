@@ -1,7 +1,4 @@
 // AppError hierarchy — see docs/architecture.md §11 for the full design.
-// UnauthorizedError/ConflictError arrive now, with Milestone 2 (auth); the
-// remaining subclass (ForbiddenError) is still deferred to Milestone 3,
-// when resource ownership is the first thing that actually needs it.
 export abstract class AppError extends Error {
   abstract readonly status: number;
   abstract readonly code: string;
@@ -33,4 +30,9 @@ export class UnauthorizedError extends AppError {
 export class ConflictError extends AppError {
   readonly status = 409;
   readonly code = 'CONFLICT';
+}
+
+export class ForbiddenError extends AppError {
+  readonly status = 403;
+  readonly code = 'FORBIDDEN';
 }

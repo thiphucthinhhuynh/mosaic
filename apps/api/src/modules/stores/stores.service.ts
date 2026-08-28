@@ -1,9 +1,11 @@
-import type { CreateStoreInput } from '@mosaic/shared';
+import type { CreateStoreInput, UpdateStoreInput } from '@mosaic/shared';
 import { NotFoundError } from '@/lib/errors';
 import {
   findAllStores,
   findStoreById,
   createStore,
+  updateStoreById,
+  deleteStoreById,
   type PublicStore,
 } from '@/modules/stores/stores.repository';
 
@@ -30,4 +32,14 @@ export async function createStoreForOwner(
   input: CreateStoreInput,
 ): Promise<PublicStore> {
   return createStore({ ownerId, ...input });
+}
+
+// Existence and ownership are already enforced by requireOwnership before
+// this runs, so there's nothing left to check here beyond the write itself.
+export async function updateStore(id: string, input: UpdateStoreInput): Promise<PublicStore> {
+  return updateStoreById(id, input);
+}
+
+export async function deleteStore(id: string): Promise<void> {
+  await deleteStoreById(id);
 }

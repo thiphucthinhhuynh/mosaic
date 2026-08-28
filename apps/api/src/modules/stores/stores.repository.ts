@@ -63,3 +63,30 @@ export async function createStore(input: NewStoreInput): Promise<PublicStore> {
     select: publicStoreSelect,
   });
 }
+
+// Minimal shape for requireOwnership's loader — just enough to compare
+// against req.user.id, no need to pull the full public store projection.
+export async function findStoreOwnerId(id: string): Promise<{ ownerId: string } | null> {
+  return prisma.store.findUnique({
+    where: { id },
+    select: { ownerId: true },
+  });
+}
+
+export type UpdateStoreInput = {
+  name?: string;
+  description?: string;
+  location?: string;
+};
+
+export async function updateStoreById(id: string, input: UpdateStoreInput): Promise<PublicStore> {
+  return prisma.store.update({
+    where: { id },
+    data: input,
+    select: publicStoreSelect,
+  });
+}
+
+export async function deleteStoreById(id: string): Promise<void> {
+  await prisma.store.delete({ where: { id } });
+}
