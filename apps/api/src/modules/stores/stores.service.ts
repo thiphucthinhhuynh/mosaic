@@ -3,6 +3,7 @@ import { NotFoundError } from '@/lib/errors';
 import {
   findAllStores,
   findStoreById,
+  findStoresByOwnerId,
   createStore,
   updateStoreById,
   deleteStoreById,
@@ -42,4 +43,8 @@ export async function updateStore(id: string, input: UpdateStoreInput): Promise<
 
 export async function deleteStore(id: string): Promise<void> {
   await deleteStoreById(id);
+}
+
+export async function listStoresForOwner(ownerId: string): Promise<PublicStore[]> {
+  return findStoresByOwnerId(ownerId);
 }

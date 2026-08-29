@@ -50,6 +50,14 @@ export async function findStoreById(id: string): Promise<PublicStore | null> {
   });
 }
 
+export async function findStoresByOwnerId(ownerId: string): Promise<PublicStore[]> {
+  return prisma.store.findMany({
+    where: { ownerId },
+    orderBy: { createdAt: 'desc' },
+    select: publicStoreSelect,
+  });
+}
+
 export type NewStoreInput = {
   ownerId: string;
   name: string;
