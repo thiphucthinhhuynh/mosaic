@@ -11,7 +11,7 @@ Mosaic is developed as a portfolio project demonstrating software-engineering pr
 ## Project Status
 
 🚧 **Status: In Development** <br>
-Milestones 0–2 (Project Bootstrap, Database Foundation & User Model, Authentication) are complete — see [docs/roadmap.md](docs/roadmap.md) for what's next.
+Milestones 0–3 (Project Bootstrap, Database Foundation & User Model, Authentication, Store CRUD) are complete — see [docs/roadmap.md](docs/roadmap.md) for what's next.
 
 ## Documentation
 
@@ -26,6 +26,7 @@ Milestones 0–2 (Project Bootstrap, Database Foundation & User Model, Authentic
 | [docs/api/authentication.md](docs/api/authentication.md)                     | Auth endpoint contracts                                                 |
 | [docs/api/health.md](docs/api/health.md)                                     | Health-check endpoint contract                                          |
 | [docs/api/users.md](docs/api/users.md)                                       | Users endpoint contract                                                 |
+| [docs/api/stores.md](docs/api/stores.md)                                     | Stores endpoint contract                                                |
 
 ## Tech Stack
 
