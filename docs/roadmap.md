@@ -8,24 +8,21 @@ Documentation (this file, `architecture.md`, relevant `docs/api/*`, and any new 
 
 ## Overview
 
-| #   | Milestone                                      | Phase                     | Status |
-| --- | ---------------------------------------------- | ------------------------- | ------ |
-| 0   | Project Bootstrap & Engineering Foundation     | Foundation                | ✅     |
-| 1   | Database Foundation & User Model               | Foundation                | ✅     |
-| 2   | Auth: Signup & Login                           | MVP                       | ✅     |
-| 3   | Store CRUD (Ownership Authorization)           | MVP                       | ⬜     |
-| 4   | Item CRUD & Item Images                        | MVP                       | ⬜     |
-| 5   | Search & Filtering                             | MVP                       | ⬜     |
-| 6   | Social Interactions: Likes & Follows           | MVP                       | ⬜     |
-| 7   | Reviews                                        | MVP                       | ⬜     |
-| 8   | Frontend Cohesion & Profile Pages              | MVP                       | ⬜     |
-| 9   | Testing Hardening                              | Production-readiness      | ⬜     |
-| 10  | Security & Production Hardening                | Production-readiness      | ⬜     |
-| 11  | CI/CD Pipeline & Deployment                    | Production-readiness      | ⬜     |
-| 12  | Observability: Logging & Request Tracing       | Production-readiness (V2) | ⬜     |
-| 13  | Auth V2: Refresh Token Rotation                | Production-readiness (V2) | ⬜     |
-| 14  | E2E Testing with Playwright                    | Production-readiness (V2) | ⬜     |
-| 15  | Production Readiness Review (Launch Checklist) | Launch                    | ⬜     |
+| #   | Milestone                                      | Phase                | Status |
+| --- | ---------------------------------------------- | -------------------- | ------ |
+| 0   | Project Bootstrap & Engineering Foundation     | Foundation           | ✅     |
+| 1   | Database Foundation & User Model               | Foundation           | ✅     |
+| 2   | Auth: Signup & Login                           | MVP                  | ✅     |
+| 3   | Store CRUD (Ownership Authorization)           | MVP                  | ✅     |
+| 4   | Item CRUD & Item Images                        | MVP                  | ⬜     |
+| 5   | Search & Filtering                             | MVP                  | ⬜     |
+| 6   | Social Interactions: Likes & Follows           | MVP                  | ⬜     |
+| 7   | Reviews                                        | MVP                  | ⬜     |
+| 8   | Frontend Cohesion & Profile Pages              | MVP                  | ⬜     |
+| 9   | Testing Hardening                              | Production-readiness | ⬜     |
+| 10  | Security & Production Hardening                | Production-readiness | ⬜     |
+| 11  | CI/CD Pipeline & Deployment                    | Production-readiness | ⬜     |
+| 12  | Production Readiness Review (Launch Checklist) | Launch               | ⬜     |
 
 ---
 
@@ -35,7 +32,7 @@ Documentation (this file, `architecture.md`, relevant `docs/api/*`, and any new 
 **Goal:** Stand up the monorepo, every piece of engineering tooling the project has committed to, and a walking skeleton proving the full stack + CI wiring works — before any real feature exists.
 **Features:** health-check endpoint; React page that calls it and displays live backend status.
 **Database changes:** none. No Prisma, no schema — the database layer is Milestone 1's job.
-**API endpoints:** `GET /api/v1/health` — see [docs/api/health.md](../api/health.md).
+**API endpoints:** `GET /api/v1/health` — see [docs/api/health.md](api/health.md).
 **Frontend pages:** single page showing API connectivity status.
 **Technical concepts introduced:** npm workspaces monorepo (`apps/web`, `apps/api`, `packages/shared`), TypeScript project setup for both apps (path aliases via `tsconfig` `paths`, resolved natively by `tsx` in dev and by Vite's `resolve.alias` for the frontend), Vite, Express 5, ESLint 10 flat config + Prettier, Husky + lint-staged, commitlint (Conventional Commits), .editorconfig, .gitignore, Docker Compose (PostgreSQL service, not yet consumed by the app), GitHub Actions CI (lint → typecheck → build), API response helper, async error wrapper, a type-only `packages/shared` (the response envelope and `HealthStatus` types, consumed via `import type` so no build step is needed yet — see note below).
 **Definition of Done:**
@@ -46,7 +43,7 @@ Documentation (this file, `architecture.md`, relevant `docs/api/*`, and any new 
 - [x] A badly-formatted/non-conventional commit is blocked locally by hooks — verified both live (a real commit was blocked by a lint-staged failure until fixed) and directly against commitlint.
 - [x] `.env.example` and `.gitignore` are present and accurate for both apps.
 
-**Notable engineering decisions made during implementation** (see [docs/architecture.md](../architecture.md) §19 for the full note): Express 5 (not 4) was installed, which natively forwards rejected-promise errors from async handlers to `next()` — the `asyncHandler` wrapper is kept anyway as an explicit, framework-independent convention, not because it's strictly required for correctness. `packages/shared` currently holds only type-only exports and has no build step; a real build (or dev/prod conditional exports) will be added once Milestone 2 introduces runtime Zod schemas.
+**Notable engineering decisions made during implementation** (see [docs/architecture.md](architecture.md) §19 for the full note): Express 5 (not 4) was installed, which natively forwards rejected-promise errors from async handlers to `next()` — the `asyncHandler` wrapper is kept anyway as an explicit, framework-independent convention, not because it's strictly required for correctness. `packages/shared` currently holds only type-only exports and has no build step; a real build (or dev/prod conditional exports) will be added once Milestone 2 introduces runtime Zod schemas.
 
 ---
 
@@ -55,10 +52,10 @@ Documentation (this file, `architecture.md`, relevant `docs/api/*`, and any new 
 **Status:** ✅ Done
 **Goal:** Introduce Postgres + Prisma and the first entity, with migrations and seeding — no auth logic yet, just the data layer.
 **Features:** Prisma schema, seed script with fake users.
-**Database changes:** created `users` table (id, username, email, password_hash, profile_pic, timestamps) with unique constraints on username/email. See [ADR-005](../adr/ADR-005-primary-key-strategy.md) for the id type.
-**API endpoints:** `GET /api/v1/users/:id` (public shape only — no password_hash/email) as a proof-of-life read. Contract: [docs/api/users.md](../api/users.md).
+**Database changes:** created `users` table (id, username, email, password_hash, profile_pic, timestamps) with unique constraints on username/email. See [ADR-005](adr/ADR-005-primary-key-strategy.md) for the id type.
+**API endpoints:** `GET /api/v1/users/:id` (public shape only — no password_hash/email) as a proof-of-life read. Contract: [docs/api/users.md](api/users.md).
 **Frontend pages:** none.
-**Technical concepts introduced:** Prisma schema modeling, migrations, seeding, repository pattern, Docker Compose Postgres service (plus a second `mosaic_test` database via a Postgres init script), API response helper used against a real database for the first time, a minimal `AppError`/`NotFoundError`/`ValidationError` hierarchy (pulled forward from Milestone 2 — see [docs/architecture.md](../architecture.md) §19), Zod-validated route params, Vitest + Supertest integration testing against a real test database, Vitest unit testing with a mocked repository layer.
+**Technical concepts introduced:** Prisma schema modeling, migrations, seeding, repository pattern, Docker Compose Postgres service (plus a second `mosaic_test` database via a Postgres init script), API response helper used against a real database for the first time, a minimal `AppError`/`NotFoundError`/`ValidationError` hierarchy (pulled forward from Milestone 2 — see [docs/architecture.md](architecture.md) §19), Zod-validated route params, Vitest + Supertest integration testing against a real test database, Vitest unit testing with a mocked repository layer.
 **Definition of Done:**
 
 - [x] `docker compose up` gives a working Postgres — **with one caveat**: Docker wasn't available in the sandbox this milestone was implemented in, so migration/seed/endpoint/test verification below used a temporary real (not mocked) embedded PostgreSQL server with matching credentials instead. `docker-compose.yml` itself was not executed end-to-end by me — see the verification section of my report for exactly what that means and what's still worth you confirming with real Docker.
@@ -66,11 +63,11 @@ Documentation (this file, `architecture.md`, relevant `docs/api/*`, and any new 
 - [x] An integration test confirms the endpoint never leaks `password_hash`/`email` — 4 integration tests + 2 unit tests, all passing against a real (non-mocked) Postgres test database.
 - [x] CI runs this test against a real DB service container — `.github/workflows/ci.yml` updated with a `postgres` service container, migration step, and test step. This was pushed and run for real on GitHub Actions, which caught a genuine bug (see below) that the sandbox's manual verification had missed; after the fix, the identical CI-equivalent sequence was re-run locally from a truly clean state (`npm ci`, no pre-existing generated Prisma Client or build output) and passed end-to-end — the next actual GitHub Actions run should be green, but hasn't been independently re-observed by me.
 
-**Known limitations / follow-ups for Milestone 2:** username/email uniqueness is case-sensitive (see [docs/architecture.md](../architecture.md) §19); `packages/shared` still has no `User`-shaped type since nothing outside `apps/api` consumes one yet — the public-user shape used here (`{ id, username, profilePic }`) is defined locally in `apps/api/src/modules/users` and is a natural candidate to move into `packages/shared` once Milestone 2's auth responses need the identical shape.
+**Known limitations / follow-ups for Milestone 2:** username/email uniqueness is case-sensitive (see [docs/architecture.md](architecture.md) §19); `packages/shared` still has no `User`-shaped type since nothing outside `apps/api` consumes one yet — the public-user shape used here (`{ id, username, profilePic }`) is defined locally in `apps/api/src/modules/users` and is a natural candidate to move into `packages/shared` once Milestone 2's auth responses need the identical shape.
 
 **Bug found and fixed after initial review:** running `npm run test` right after `npm run build` picked up stale compiled test files from `apps/api/dist/` (`tsc` was compiling `*.test.ts` into the build output, since `apps/api/tsconfig.json` had no exclusion for them) — Vitest then ran both the source and compiled copies of the same integration test concurrently against the same test database, causing a unique-constraint collision on the seeded username. Fixed by excluding `src/**/*.test.ts` from the `tsc` build (`apps/api/tsconfig.json`) and, as defense-in-depth, explicitly excluding `**/dist/**` in `apps/api/vitest.config.ts`. Verified by deleting the stale `dist/`, rebuilding, and re-running the full `lint → typecheck → test → build → format:check` sequence twice (including test-immediately-after-build, the exact order that surfaced the bug) — all green both times.
 
-**Second bug, caught by a real GitHub Actions run:** CI's Typecheck step failed with `Cannot find module '@/generated/prisma/client'`. Root cause: nothing in the pipeline — or in the documented local setup steps — ever ran `prisma generate`; every verification up to that point had a pre-existing generated client left over from earlier manual commands, masking the gap. `apps/api/src/generated/prisma` is gitignored by design (it's regenerated from `schema.prisma`, not version-controlled — see [ADR-003](../adr/ADR-003-prisma.md)), so a genuinely clean checkout (`npm ci` with no prior generate) had nothing to import. Fixed with an explicit "Generate Prisma Client" step in `.github/workflows/ci.yml` (after install, before lint/typecheck) and an explicit `npm run db:generate -w @mosaic/api` step added to the documented local setup in [docs/development/project-setup.md](../development/project-setup.md) and the README (`prisma migrate dev` only regenerates the client as a side effect when there's an actual pending migration, which is false on a fresh clone). Verified by removing `apps/api/src/generated/` and every `dist/`, running `npm ci` for real, reproducing the exact CI error, then running the corrected sequence (generate → lint → typecheck → migrate → test → build → format:check) clean end to end, plus a live check of both endpoints against freshly seeded data.
+**Second bug, caught by a real GitHub Actions run:** CI's Typecheck step failed with `Cannot find module '@/generated/prisma/client'`. Root cause: nothing in the pipeline — or in the documented local setup steps — ever ran `prisma generate`; every verification up to that point had a pre-existing generated client left over from earlier manual commands, masking the gap. `apps/api/src/generated/prisma` is gitignored by design (it's regenerated from `schema.prisma`, not version-controlled — see [ADR-003](adr/ADR-003-prisma.md)), so a genuinely clean checkout (`npm ci` with no prior generate) had nothing to import. Fixed with an explicit "Generate Prisma Client" step in `.github/workflows/ci.yml` (after install, before lint/typecheck) and an explicit `npm run db:generate -w @mosaic/api` step added to the documented local setup in [docs/development/project-setup.md](development/project-setup.md) and the README (`prisma migrate dev` only regenerates the client as a side effect when there's an actual pending migration, which is false on a fresh clone). Verified by removing `apps/api/src/generated/` and every `dist/`, running `npm ci` for real, reproducing the exact CI error, then running the corrected sequence (generate → lint → typecheck → migrate → test → build → format:check) clean end to end, plus a live check of both endpoints against freshly seeded data.
 
 ---
 
@@ -95,15 +92,15 @@ Full suite: `lint`, `typecheck`, `test` (27/27 passing), `build`, `format:check`
 
 **Conflicts found in existing implementation, fixed as part of this milestone (not scope changes — see full explanation in the implementation report):** `app.ts`'s CORS config was missing `credentials: true`, which would have silently broken cookie-based auth entirely; `users.repository.ts` had a locally-duplicated `PublicUser` type that Milestone 1 had already flagged for moving into `packages/shared` once auth needed the same shape.
 
-**New decision:** [ADR-006](../adr/ADR-006-case-insensitive-uniqueness.md) — signup uniqueness is checked case-insensitively at the application level (Prisma `mode: 'insensitive'`), resolving the case-sensitivity gap flagged in Milestone 1, without a schema/migration change.
+**New decision:** [ADR-006](adr/ADR-006-case-insensitive-uniqueness.md) — signup uniqueness is checked case-insensitively at the application level (Prisma `mode: 'insensitive'`), resolving the case-sensitivity gap flagged in Milestone 1, without a schema/migration change.
 
-**Known limitations / follow-ups:** no admin capability to force-logout a user (no server-side revocation until Milestone 13's refresh tokens); the case-insensitive uniqueness check has a small theoretical race window between the check and the create (see ADR-006); no "confirm password" field on the signup form (matches the documented API contract exactly, which only has one password field).
+**Known limitations / follow-ups:** no admin capability to force-logout a user — this project's auth design has no refresh-token/session table, so there's no server-side mechanism to revoke a still-valid token before it expires (see [docs/architecture.md](architecture.md) §6, a permanent V1-only design choice, not a deferred one); the case-insensitive uniqueness check has a small theoretical race window between the check and the create (see ADR-006); no "confirm password" field on the signup form (matches the documented API contract exactly, which only has one password field).
 
 ---
 
 ### Milestone 3 — Store CRUD (Ownership Authorization)
 
-**Status:** ⬜ Not Started
+**Status:** ✅ Done
 **Goal:** Users create and manage their own store(s); introduces the Ownership authorization tier.
 **Features:** create store, browse all stores (guest), view store detail (guest), update/delete own store.
 **Database changes:** create `stores` table (owner_id FK → users, name, description, location, timestamps).
@@ -111,6 +108,18 @@ Full suite: `lint`, `typecheck`, `test` (27/27 passing), `build`, `format:check`
 **Frontend pages:** Stores listing, Store detail, Create Store form, Edit Store form, delete confirmation.
 **Technical concepts introduced:** `requireOwnership` middleware pattern with a resource loader, nested-resource REST design, Prisma relation queries, pagination on a list endpoint.
 **Definition of Done:** guests browse without auth; only the owner can edit/delete (403 otherwise, explicitly tested); list pagination works; barrel export (`index.ts`) established for this module as the template for the rest.
+
+**Sub-steps (implemented one at a time, in that order, on request):**
+
+- [x] **1. Database:** `Store` model & migration. Reconcile against any existing draft in `schema.prisma`, apply the migration, regenerate the Prisma client, optionally seed 1–2 stores. No API yet. — Done: migration `20260823070300_add_store` applied to both databases; `@@index([ownerId])` added (Postgres doesn't auto-index FK columns, and step 5 needs it) and `onDelete: Cascade` kept and explained in a schema comment. Seeded 2 stores (owned by `ada_lovelace`, `grace_hopper`); `linus_t` deliberately left storeless to cover the empty-list case later. Verified live: cascade delete actually removes a user's stores (tested in a rolled-back transaction), FK index confirmed via `\d stores`, seed re-run confirmed idempotent (0 new rows on the second run).
+- [x] **2. Backend — public reads (Guest tier):** `GET /api/v1/stores` (paginated), `GET /api/v1/stores/:id`. New `stores` module (repository/service/controller/routes/barrel), following the `users` module pattern. Integration tests: happy path, pagination, 404, invalid id. — Done: both endpoints embed the owner's public info (`id`, `username`) via a Prisma nested `select` (never `include`, so `passwordHash`/`email` can't leak through the relation either). Pagination via `?page=&limit=` (default 20, max 100), returned in the response `meta`. Found and fixed a real gap along the way: Express 5 makes `req.query` read-only, so the existing `validateBody`-style "replace the field with the parsed value" pattern silently no-ops for query params — added a `validateQuery` middleware that stashes the validated/coerced result on `res.locals.query` instead (typed per-route via `Response<unknown, { query: ... }>`), and generalized `asyncHandler` to be generic over the response type too, since it previously only parameterized the request. 8 new integration tests (35/35 passing total); verified live against real seeded data (list, pagination across pages, detail, 404, 400).
+- [x] **3. Backend — create store (Authenticated tier):** `POST /api/v1/stores` behind `requireAuth`, new `packages/shared` Zod schema for the body. Tests: happy path (owner id from the JWT, not the body), validation errors, 401 without a session. — Done: wired `requireAuth` → `validateBody(createStoreSchema)` → `createStoreHandler` in `stores.routes.ts` (the schema/service/repository/controller pieces already existed from earlier work but weren't reachable yet). `createStoreSchema` has no `ownerId` field, so a client-supplied `ownerId` in the body is silently stripped by Zod's default "strip unknown keys" behavior — `createStoreForOwner` always takes the id from `req.user.id` (set by `requireAuth` from the JWT), never the body. 4 new integration tests (39/39 passing total): store created and owned by the session user (verified against the DB row directly), a spoofed `ownerId` in the body is ignored in favor of the session user, 401 with no session, 400 when `name` is missing.
+- [x] **4. Backend — `requireOwnership` + update/delete:** the generic resource-loader ownership middleware (architecture.md §7, first real use), then `PUT /api/v1/stores/:id` and `DELETE /api/v1/stores/:id`. Tests: owner succeeds, non-owner gets 403, unauthenticated gets 401, missing store gets 404. — Done: `requireOwnership(loadResource)` in `middleware/requireOwnership.ts` takes a loader returning `{ ownerId }`, so it works for any resource type, including one owned through a relation (e.g. an item via its store) — not just a direct `ownerId` column; this is the "resource loader" pattern the DoD calls for. Added the previously-deferred `ForbiddenError` (403) to the `AppError` hierarchy. Route order is `validateParams` → `requireAuth` → `requireOwnership` → `validateBody` → handler, so authorization is checked before body validation (a non-owner never learns whether their payload would've been valid). `updateStoreSchema` (`packages/shared`) is `createStoreSchema.partial()` with a refine rejecting an empty body. Delete responds `{ data: null, error: null }` (200), matching the envelope convention used by logout, rather than a bodyless 204. 9 new integration tests (48/48 passing total): PUT owner success, PUT 403/401/404/400-empty-body, DELETE 403 (row still exists), DELETE 401, DELETE 404, DELETE owner success (row actually gone). Verified live against the real Postgres test DB via Docker Compose.
+- [x] **5. Backend — `GET /api/v1/users/me/stores`:** current user's own stores, behind `requireAuth`. — Done: lives in the `users` module (route path is `/users/me/stores`) but delegates to the `stores` module's service layer (`listStoresForOwner`, exported via `modules/stores`'s barrel) rather than reaching into its repository directly — same cross-module pattern `auth.service.ts` already uses for `findPublicProfileById`. `usersRouter.get('/me/stores', ...)` is registered before `/:id`; no route conflict either way since `/me/stores` is two path segments and `/:id` only matches one, but keeping the static route first reads clearer. No pagination (unlike the guest list endpoint) — not called for by the roadmap entry, and a user's own store count isn't expected to need it. 3 new integration tests (51/51 passing total): returns only the authenticated user's own stores (a second user's store in the same query window is excluded), empty array for a user with none, 401 unauthenticated. Verified live against the real Postgres test DB via Docker Compose.
+- [x] **6. Frontend — Stores list + Store detail pages:** guest-visible, TanStack Query hooks for step 2's endpoints. — Done: new `stores` feature (`useStoresQuery`/`useStoreQuery`) plus `/stores` and `/stores/:id` routes, both outside `<ProtectedRoute>` since browsing is guest-visible. Added a `PublicStore` type to `packages/shared` (mirroring the existing `PublicUser` pattern) since no shared response type existed yet. `apiClient` only ever returned `data`, dropping `meta` — added a sibling `apiClientWithMeta` (sharing the same fetch/error-handling internals) so the list page can read pagination info; list pagination uses `keepPreviousData` so the current page stays visible while the next loads. Verified live in the browser: caught and fixed a real bug along the way that had nothing to do with this step's code — the _dev_ Postgres database had never been migrated or seeded (only the test DB had, from earlier integration-test runs), so `GET /api/v1/stores` was 500ing. Ran `prisma migrate deploy` + `db:seed` against dev; confirmed both pages render real seeded data end-to-end.
+- [x] **7. Frontend — Create Store form:** React Hook Form + Zod (shared schema from step 3), requires auth, redirects to `/login` if signed out. — Done: `CreateStoreForm` (`features/stores`) reuses `createStoreSchema` from `packages/shared` via `zodResolver`, following the exact `LoginForm`/`SignupForm` shape (local `formError` state, `ApiError` → message fallback, `isSubmitting` gate). New `/stores/new` route is wrapped in the existing `<ProtectedRoute>`, so an unauthenticated visit redirects to `/login` for free — no new auth-guard logic needed. On success, `useCreateStoreMutation` invalidates the `['stores', 'list']` query (so a fresh browse of `/stores` shows the new store) and the form navigates to the new store's detail page. Added a "Create a store" link on `StoresPage`, shown only when `useAuth()` has a user. Verified: typecheck/lint clean, new modules confirmed to compile through Vite with no transform errors, and the exact API flow the form drives (signup → `POST /stores` → appears via `GET /users/me/stores` → `DELETE`) exercised end-to-end via curl with cleanup after. Not verified: an actual click-through of the form in a real browser — no headless browser was available in this session, and the trade-off of live UI verification was intentionally accepted this step.
+- [x] **8. Frontend — Edit/Delete Store UI:** edit form (pre-filled), delete confirmation, both shown only to the store's owner. — Done: `EditStoreForm` pre-fills via RHF `defaultValues` from the loaded `PublicStore` (`description`/`location` coerced from `null` to `''` since the form fields are plain strings), validated with `updateStoreSchema` — since the form always submits all three fields, its "reject an empty body" refine never actually triggers here, but reusing the same shared schema as the API keeps client/server validation in lockstep. `DeleteStoreButton` is a two-step inline confirm (click "Delete store" → "Yes, delete it" / "Cancel") rather than `window.confirm`, consistent with hand-rolled UI elsewhere in the app. New `/stores/:id/edit` route is `<ProtectedRoute>`-gated for the signed-in check; the ownership check itself (`store.owner.id !== user.id` → redirect to the detail page) lives inside `EditStorePage`, since routing alone can't express "signed in AND owns this specific resource" — the backend's `requireOwnership` remains the actual enforcement boundary, this is purely a UI convenience to avoid showing the form to a non-owner who navigates there directly. `StoreDetailPage` now shows "Edit store" + `DeleteStoreButton` only when `useAuth()`'s user matches the store's owner. Both mutations invalidate the `['stores', 'list']` query; update also patches the cached detail, delete removes it and navigates back to `/stores`. Verified: typecheck/lint clean, new modules confirmed to compile through Vite, and the full edit→delete API sequence the UI drives exercised end-to-end via curl (update reflected in the response, delete confirmed via a follow-up 404) with cleanup after. As with step 7, not verified: an actual click-through in a real browser — no headless browser was available in this session.
+- [x] **9. Full milestone verification & docs:** complete gate (lint/typecheck/test/build/format), live Playwright walkthrough (browse as guest → sign in → create → edit → delete a store), then update this roadmap entry, `docs/architecture.md`, a new `docs/api/stores.md`, and `README.md`. — Done: full gate green (lint, typecheck, all 3 workspaces build, format check, 51/51 backend tests). Live Playwright walkthrough (no headless browser was available in earlier sub-step sessions this milestone, so this is the first real click-through of the create/edit/delete UI, not just steps 7–8's curl-level checks): a real Chromium instance drove guest browse → sign up → create a store → edit it (name + location) → delete it (two-step confirm) → back to the guest list with the store gone, asserting the rendered text at each stop, not just HTTP status codes. Two benign console errors were observed (`401` on the guest `/auth/me` check, logged twice by React StrictMode's dev double-invoke) — pre-existing behavior unrelated to this milestone's code, already handled gracefully by `fetchMe`'s catch. Docs: added `docs/api/stores.md` (all 6 endpoints + the `PublicStore` shape + `requireOwnership`'s design); updated `docs/architecture.md` §19 (fixed a stale note that still called `ForbiddenError` deferred, added notes for `requireOwnership`, `apiClientWithMeta`, and the new `PublicStore` shared type); updated `README.md` (status line, new doc link); this roadmap's Overview table and Milestone 3's own status both flipped to ✅.
 
 ---
 
@@ -174,7 +183,7 @@ Full suite: `lint`, `typecheck`, `test` (27/27 passing), `build`, `format:check`
 **Database changes:** none.
 **API endpoints:** one aggregate `GET /api/v1/users/:id/profile` combining profile + stores + counts, a deliberate trade-off of REST purity for fewer round trips (see [docs/architecture.md](architecture.md), §8).
 **Frontend pages:** Profile page (self/other), auth-aware navigation, 404 page, global error boundary.
-**Technical concepts introduced:** React error boundaries, skeleton loading states, Tailwind responsive layout.
+**Technical concepts introduced:** React error boundaries, skeleton loading states, responsive layout with vanilla CSS (media queries, CSS custom properties) — see [ADR-007](adr/ADR-007-vanilla-css.md).
 **Definition of Done:** every page has defined loading/error/empty states — no blank screens; profile loads in one request instead of a waterfall; guest vs. logged-in nav states verified; layout doesn't break at mobile width.
 
 ---
@@ -218,45 +227,7 @@ Full suite: `lint`, `typecheck`, `test` (27/27 passing), `build`, `format:check`
 
 ---
 
-### Milestone 12 — Observability: Logging & Request Tracing
-
-**Status:** ⬜ Not Started
-**Goal:** Add the request-ID correlation deferred from the V1 logging design.
-**Features:** `pino-http` middleware, request ID generated per request and propagated through service/repository logs, included in error responses.
-**Database changes:** none.
-**API endpoints:** none new (error responses gain a `requestId` field).
-**Frontend pages:** none new.
-**Technical concepts introduced:** context propagation (e.g. `AsyncLocalStorage`) without threading an ID through every function signature.
-**Definition of Done:** every log line for a single request shares one ID, verifiable by grep; error responses expose that ID; a deliberately triggered error shows the same ID in the API response and the server log.
-
----
-
-### Milestone 13 — Auth V2: Refresh Token Rotation
-
-**Status:** ⬜ Not Started
-**Goal:** Replace the V1 single long-lived token with short-lived access + rotating refresh tokens and revocation.
-**Database changes:** create `refresh_tokens` table (user_id, token_hash, expires_at, revoked_at).
-**API endpoints:** `POST /api/v1/auth/refresh`; logout now revokes the token server-side instead of just clearing a cookie.
-**Frontend pages:** none new — silent refresh handled transparently via a fetch/query interceptor on 401.
-**Technical concepts introduced:** refresh rotation (new refresh token issued on every use, old one invalidated), reuse detection (a replayed old token kills the whole session family), short access-token lifetime.
-**Definition of Done:** access token expires quickly and refreshes silently; logout provably revokes server-side (reuse after logout is rejected, tested); simulated token reuse is detected and the session is killed.
-
----
-
-### Milestone 14 — E2E Testing with Playwright
-
-**Status:** ⬜ Not Started
-**Goal:** Lock down the golden paths now that the UI and flows are stable.
-**Features:** Playwright suite: signup→login, create store→create item, like an item, follow a user, leave a review.
-**Database changes:** none (test-only seed/reset for E2E isolation).
-**API endpoints:** none new.
-**Frontend pages:** none new.
-**Technical concepts introduced:** Playwright fixtures, DB reset strategy per E2E run, headless browser execution in GitHub Actions as a separate CI job.
-**Definition of Done:** all golden-path tests pass 3 consecutive CI runs with no flakiness; E2E runs as its own job, kept out of the fast unit/integration feedback loop; README documents running them locally.
-
----
-
-### Milestone 15 — Production Readiness Review (Launch Checklist)
+### Milestone 12 — Production Readiness Review (Launch Checklist)
 
 **Status:** ⬜ Not Started
 **Goal:** Final polish pass, treated as a launch rather than a demo.
@@ -271,10 +242,13 @@ Full suite: `lint`, `typecheck`, `test` (27/27 passing), `build`, `format:check`
 
 ## Deliberately Out of Scope
 
-Not on the critical path, consistent with the YAGNI reasoning in [docs/architecture.md](architecture.md) §18:
+Not on the critical path, consistent with the YAGNI reasoning in [docs/architecture.md](architecture.md) §18. This project has a single V1 scope — nothing below is "coming in V2"; these were considered and are permanently excluded unless a real need for one shows up later:
 
 - Admin role + RBAC
 - Real file upload (S3/Cloudinary) in place of image URLs
 - Real-time notifications (WebSockets)
+- Refresh token rotation / server-side session revocation — V1 auth's single long-lived JWT cookie is the permanent design, not a placeholder for a later upgrade (see [docs/architecture.md](architecture.md) §6)
+- Per-request correlation IDs / distributed log tracing — structured logging (Pino) ships without this; not planned
+- End-to-end browser tests (Playwright) — the project relies on unit + integration tests only (see [docs/architecture.md](architecture.md) §15)
 
 These may be worth a "what I'd build next" note in the README once the core roadmap is complete, but are not planned milestones.

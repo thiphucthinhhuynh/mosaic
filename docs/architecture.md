@@ -38,20 +38,20 @@ See [ADR-001](adr/ADR-001-monorepo.md) for why a monorepo was chosen over separa
 
 ## 3. Tech Stack
 
-| Concern                     | Choice                                                       | Notes                                        |
-| --------------------------- | ------------------------------------------------------------ | -------------------------------------------- |
-| Frontend framework          | React + TypeScript                                           | Vite as build tool/dev server                |
-| Server state                | TanStack Query                                               | Caching, loading/error state for API calls   |
-| Forms & validation (client) | React Hook Form + Zod                                        | Shared Zod schemas with the backend          |
-| Styling                     | Tailwind CSS                                                 | Utility-first, no separate CSS-in-JS runtime |
-| Backend framework           | Express 5 + TypeScript                                       | Layered internally, see §5                   |
-| ORM / Database              | Prisma + PostgreSQL                                          | See [ADR-003](adr/ADR-003-prisma.md)         |
-| Auth                        | bcrypt (hashing) + JWT (httpOnly cookie)                     | V1 scope — see §7                            |
-| Logging                     | Pino                                                         | Structured JSON logs                         |
-| API style                   | REST, versioned (`/api/v1`)                                  | See [ADR-002](adr/ADR-002-rest-api.md)       |
-| Local infra                 | Docker Compose                                               | PostgreSQL container for local dev           |
-| CI/CD                       | GitHub Actions                                               | Lint, typecheck, test, build, deploy         |
-| Hosting                     | Vercel (web), Render/Railway (api), Neon/Supabase (Postgres) | See §16                                      |
+| Concern                     | Choice                                                       | Notes                                                                                  |
+| --------------------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| Frontend framework          | React + TypeScript                                           | Vite as build tool/dev server                                                          |
+| Server state                | TanStack Query                                               | Caching, loading/error state for API calls                                             |
+| Forms & validation (client) | React Hook Form + Zod                                        | Shared Zod schemas with the backend                                                    |
+| Styling                     | Vanilla CSS (CSS Modules)                                    | No utility framework, no CSS-in-JS runtime — see [ADR-007](adr/ADR-007-vanilla-css.md) |
+| Backend framework           | Express 5 + TypeScript                                       | Layered internally, see §5                                                             |
+| ORM / Database              | Prisma + PostgreSQL                                          | See [ADR-003](adr/ADR-003-prisma.md)                                                   |
+| Auth                        | bcrypt (hashing) + JWT (httpOnly cookie)                     | V1 scope — see §7                                                                      |
+| Logging                     | Pino                                                         | Structured JSON logs                                                                   |
+| API style                   | REST, versioned (`/api/v1`)                                  | See [ADR-002](adr/ADR-002-rest-api.md)                                                 |
+| Local infra                 | Docker Compose                                               | PostgreSQL container for local dev                                                     |
+| CI/CD                       | GitHub Actions                                               | Lint, typecheck, test, build, deploy                                                   |
+| Hosting                     | Vercel (web), Render/Railway (api), Neon/Supabase (Postgres) | See §16                                                                                |
 
 ## 4. Frontend Architecture
 
@@ -72,6 +72,7 @@ apps/web/src/
 - **Client-only UI state** (e.g. modal open/closed) stays local via `useState`/context; no Redux — the app has no state complex enough to justify it.
 - **Forms** use React Hook Form with a Zod resolver, using the _same_ Zod schema the backend validates against (imported from `packages/shared`).
 - **Routing** via React Router; a `ProtectedRoute` wrapper enforces the Authenticated tier (§8) client-side, mirroring — never replacing — the server-side check.
+- **Styling** is plain CSS via CSS Modules (`ComponentName.module.css`, co-located with the component that imports it) for anything component-scoped, plus the existing global `src/index.css` for resets and root-level CSS custom properties (colors, spacing). See [ADR-007](adr/ADR-007-vanilla-css.md).
 
 See [ADR-004](adr/ADR-004-feature-based-architecture.md) for why feature-based folders were chosen over layer-based ones, and why barrel exports (`index.ts`) are used as explicit module boundaries.
 
@@ -109,12 +110,10 @@ apps/api/src/
 
 **Decision:** email/password signup and login. Passwords hashed with **bcrypt**. On successful login, a single **JWT access token** is issued and delivered as an `httpOnly`, `Secure`, `SameSite=Lax` cookie. Logout clears the cookie client-side.
 
-**V1 scope — deliberately excludes:**
+**Deliberately excluded, permanently — not a placeholder for a later upgrade:**
 
 - Refresh tokens / rotation. The access token is the only credential; its lifetime (e.g. 7 days) is set long enough to be usable without a refresh flow.
-- Server-side revocation. Because there is no refresh-token table yet, there is no way to force-invalidate a still-valid token before it expires (e.g. on logout or account compromise). This is an accepted, explicit limitation of V1, not an oversight.
-
-**Planned V2 addition:** short-lived access token + rotating refresh token with a `refresh_tokens` table enabling real server-side revocation. Tracked as a dedicated milestone in [docs/roadmap.md](roadmap.md) — not built until then.
+- Server-side revocation. Because there is no refresh-token table, there is no way to force-invalidate a still-valid token before it expires (e.g. on logout or account compromise). This is an accepted, explicit limitation of the design, not an oversight — see [docs/roadmap.md](roadmap.md)'s Deliberately Out of Scope section.
 
 ## 7. Authorization Strategy (V1)
 
@@ -147,7 +146,7 @@ Core entities (introduced across milestones, see [docs/roadmap.md](roadmap.md); 
 
 ```
 User ✅     (id, username, email, password_hash, profile_pic, timestamps)
-Store       (id, owner_id → User, name, description, location, timestamps)
+Store ✅    (id, owner_id → User, name, description, location, timestamps)
 Item        (id, store_id → Store, name, description, price, quantity, category, timestamps)
 ItemImage   (id, item_id → Item, url)
 Like        (id, user_id → User, item_id → Item, unique(user_id, item_id))
@@ -157,7 +156,7 @@ Review      (id, user_id → User, store_id → Store, stars, body, timestamps, 
 
 `User.id` (and every future table's primary key) is a UUID, not an autoincrementing integer — see [ADR-005](adr/ADR-005-primary-key-strategy.md). Columns are `camelCase` in the Prisma schema and TypeScript, mapped to `snake_case` in the actual Postgres table (`@map`/`@@map`) — the conventional split between idiomatic JS/TS and idiomatic SQL.
 
-Not yet in the schema (planned, not built): `refresh_tokens` (V2 auth), any `role` column on `User` (only if/when RBAC becomes necessary).
+Not in the schema, deliberately: a `refresh_tokens` table (see §6 — this project's auth design has no refresh-token mechanism at all, not a deferred one) and any `role` column on `User` (only if/when RBAC becomes necessary — see [docs/roadmap.md](roadmap.md)'s Deliberately Out of Scope section).
 
 See [ADR-003](adr/ADR-003-prisma.md) for why Prisma was chosen over Sequelize/Drizzle/TypeORM.
 
@@ -191,7 +190,7 @@ Applied progressively as milestones land (see [docs/roadmap.md](roadmap.md) for 
 ## 13. Logging (V1)
 
 - `pino` for structured JSON logs at the application level: startup/shutdown, database connectivity, and every error caught by the centralized error handler, each with a level (`info`/`warn`/`error`) and relevant context.
-- **Not yet included:** per-request correlation IDs (`pino-http` + propagation through service calls). This is a deliberate V1 simplification — logs are structured but not yet traceable end-to-end across a single request. Planned as its own milestone (see [docs/roadmap.md](roadmap.md)).
+- **Not included, deliberately:** per-request correlation IDs (`pino-http` + propagation through service calls). Logs are structured but not traceable end-to-end across a single request — an accepted trade-off, not a gap being tracked toward a later milestone (see [docs/roadmap.md](roadmap.md)'s Deliberately Out of Scope section).
 
 ## 14. Environment Configuration
 
@@ -206,7 +205,7 @@ Two layers in V1:
 - **Unit tests** (Vitest) — services, utilities, Zod schemas, isolated React hooks/components.
 - **Integration tests** (Vitest + Supertest) — full route → middleware → service → real test-database round trips, covering auth, ownership, and validation for every module.
 
-**Not yet included:** end-to-end browser tests (Playwright). Deferred until the UI and core flows are stable enough that E2E tests won't be rewritten as the UI churns — tracked as its own milestone.
+**Not included, deliberately:** end-to-end browser tests (Playwright). Unit + integration coverage is the project's testing strategy in full, not a first phase toward E2E — see [docs/roadmap.md](roadmap.md)'s Deliberately Out of Scope section.
 
 CI blocks merges on failing tests. Coverage is tracked but not enforced as a hard gate — testing the actual risk areas (auth, ownership, validation boundaries) matters more than a coverage percentage.
 
@@ -231,18 +230,11 @@ CI blocks merges on failing tests. Coverage is tracked but not enforced as a har
 
 Full conventions are documented in [docs/development/coding-standards.md](development/coding-standards.md).
 
-## 18. Versioning Note: V1 vs. V2
+## 18. Deliberate Exclusions
 
-This document describes **V1 scope** as currently approved. Several items are intentionally deferred rather than omitted by oversight:
+This document describes the project's **one and only planned scope** — there is no separate "V2" tier of features waiting behind it. A handful of things were considered and deliberately excluded rather than omitted by oversight (refresh-token rotation, admin RBAC, per-request log correlation, Playwright E2E tests, among others); the full list and reasoning for each lives in one place, [docs/roadmap.md](roadmap.md)'s **Deliberately Out of Scope** section, rather than being duplicated here.
 
-| Deferred item                       | Reason                                                                                     | Tracked in                                       |
-| ----------------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------ |
-| Refresh token rotation + revocation | Simpler auth flow ships first, correctly, before adding rotation complexity                | [docs/roadmap.md](roadmap.md)                    |
-| Admin RBAC                          | No current use case; avoiding speculative design (YAGNI)                                   | [docs/roadmap.md](roadmap.md) (optional/stretch) |
-| Request-ID log correlation          | Structured logging ships first; correlation is a deliberate follow-up                      | [docs/roadmap.md](roadmap.md)                    |
-| Playwright E2E tests                | Deferred until UI/flows stabilize, to avoid rewriting brittle tests during active UI churn | [docs/roadmap.md](roadmap.md)                    |
-
-When any of these are implemented, this document will be updated in the same milestone as the code, per the project's documentation rules.
+If any of these is ever actually built, that's a real scope change: it gets a new milestone in the roadmap and, if it involves a genuine architectural decision, its own ADR — the same process as any other feature, not a pre-approved "phase 2."
 
 ## 19. Implementation Notes
 
@@ -255,4 +247,8 @@ Details discovered while building, worth recording so this document stays accura
 - **The `AppError`/`NotFoundError`/`ValidationError` hierarchy from §11 arrived in Milestone 1, not Milestone 2 as originally scheduled.** `GET /api/v1/users/:id` needed real not-found and invalid-input handling to satisfy its own Definition of Done, so the minimal subset of the hierarchy this endpoint needs was built now (`apps/api/src/lib/errors.ts`); `UnauthorizedError`/`ForbiddenError`/`ConflictError` are still deferred to when auth (Milestone 2) and ownership (Milestone 3) actually need them.
 - **Case-insensitive signup uniqueness resolved in Milestone 2.** The DB's `@unique` constraints on `username`/`email` remain case-sensitive (unchanged, no migration); signup now runs a case-insensitive existence check at the application level first (Prisma's `mode: 'insensitive'` query filter), so `"JohnDoe"` and `"johndoe"` can no longer both sign up while each user's chosen display casing is still preserved exactly as typed. See [ADR-006](adr/ADR-006-case-insensitive-uniqueness.md) for the alternatives considered and the residual race-condition trade-off this accepts.
 - **CORS needed `credentials: true`, not just an `origin` allowlist.** The cookie-based auth strategy in §6 doesn't work cross-origin without it — the frontend (`:5173`) and API (`:4000`) are different origins in dev, and without `credentials: true` on both the CORS middleware and the frontend's `fetch` calls (`credentials: 'include'`), the browser silently drops the auth cookie on every request. This was a gap in the Milestone 0 `app.ts`, invisible until Milestone 2 introduced the first cookie-dependent requests; fixed as part of this milestone, not a scope change.
-- **The `AppError` hierarchy from §11 is now complete except `ForbiddenError`.** Milestone 2 added `UnauthorizedError` (401, invalid/missing session) and `ConflictError` (409, duplicate signup). `ForbiddenError` remains deferred to Milestone 3, the first place resource ownership actually needs it.
+- **The `AppError` hierarchy from §11 is now complete.** Milestone 2 added `UnauthorizedError` (401) and `ConflictError` (409). Milestone 3 added the last one, `ForbiddenError` (403), when `requireOwnership` became the first thing that actually needed it (see below).
+- **Express 5 makes `req.query` read-only.** Confirmed directly (assigning `req.query = {...}` neither throws nor takes effect — the original parsed query silently comes back unchanged). This meant `validateBody`'s pattern of replacing the field with the Zod-parsed value doesn't work for query params: the new `validateQuery` middleware (introduced in Milestone 3 for `GET /api/v1/stores`'s pagination) stashes the parsed result on `res.locals.query` instead, typed per-route via Express's `Response<ResBody, LocalsObj>` generic. `asyncHandler` (§11/§17) was generalized to accept a generic response type too, since it previously only varied the request type.
+- **`requireOwnership` (Milestone 3) implements the Resource Ownership tier from §7.** It's a middleware _factory_: `requireOwnership(loadResource)` takes a loader resolving to `{ ownerId }` and compares it to `req.user.id`, 404ing if the resource doesn't exist and 403ing if it exists but belongs to someone else. Because the loader is the only resource-specific part, the same middleware covers ownership through a relation (e.g. an item whose owner is its _store's_ owner, arriving in Milestone 4) and not just a resource with a direct `ownerId` column. Route order matters: `validateParams → requireAuth → requireOwnership → validateBody → handler` — authorization is checked before body validation, so a non-owner's request 403s without ever revealing whether its payload would have been valid.
+- **The frontend's `apiClient` only ever returned the envelope's `data`, dropping `meta`.** This was fine until Milestone 3's stores list page needed pagination info. Rather than change every caller's return shape, a sibling `apiClientWithMeta` was added (`apps/web/src/lib/apiClient.ts`) sharing the same fetch/error-handling internals via a private `request` function — most callers still use plain `apiClient` and never see `meta`.
+- **`packages/shared` gained its first non-`PublicUser` response type, `PublicStore` (Milestone 3).** Mirrors the existing `PublicUser` pattern (a plain type, not a Zod schema, since it describes a trusted server response rather than input needing validation).

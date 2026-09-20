@@ -1,0 +1,100 @@
+import { prisma } from '@/lib/prisma';
+
+export type PublicStore = {
+  id: string;
+  name: string;
+  description: string | null;
+  location: string | null;
+  createdAt: Date;
+  owner: {
+    id: string;
+    username: string;
+  };
+};
+
+// select (not include) for the owner relation too — this is what guarantees
+// passwordHash/email never leave the database for this query, the same
+// reasoning as users.repository's findPublicProfileById.
+const publicStoreSelect = {
+  id: true,
+  name: true,
+  description: true,
+  location: true,
+  createdAt: true,
+  owner: { select: { id: true, username: true } },
+} as const;
+
+export async function findAllStores(params: {
+  page: number;
+  limit: number;
+}): Promise<{ stores: PublicStore[]; total: number }> {
+  const skip = (params.page - 1) * params.limit;
+
+  const [stores, total] = await Promise.all([
+    prisma.store.findMany({
+      skip,
+      take: params.limit,
+      orderBy: { createdAt: 'desc' },
+      select: publicStoreSelect,
+    }),
+    prisma.store.count(),
+  ]);
+
+  return { stores, total };
+}
+
+export async function findStoreById(id: string): Promise<PublicStore | null> {
+  return prisma.store.findUnique({
+    where: { id },
+    select: publicStoreSelect,
+  });
+}
+
+export async function findStoresByOwnerId(ownerId: string): Promise<PublicStore[]> {
+  return prisma.store.findMany({
+    where: { ownerId },
+    orderBy: { createdAt: 'desc' },
+    select: publicStoreSelect,
+  });
+}
+
+export type NewStoreInput = {
+  ownerId: string;
+  name: string;
+  description?: string;
+  location?: string;
+};
+
+export async function createStore(input: NewStoreInput): Promise<PublicStore> {
+  return prisma.store.create({
+    data: input,
+    select: publicStoreSelect,
+  });
+}
+
+// Minimal shape for requireOwnership's loader — just enough to compare
+// against req.user.id, no need to pull the full public store projection.
+export async function findStoreOwnerId(id: string): Promise<{ ownerId: string } | null> {
+  return prisma.store.findUnique({
+    where: { id },
+    select: { ownerId: true },
+  });
+}
+
+export type UpdateStoreInput = {
+  name?: string;
+  description?: string;
+  location?: string;
+};
+
+export async function updateStoreById(id: string, input: UpdateStoreInput): Promise<PublicStore> {
+  return prisma.store.update({
+    where: { id },
+    data: input,
+    select: publicStoreSelect,
+  });
+}
+
+export async function deleteStoreById(id: string): Promise<void> {
+  await prisma.store.delete({ where: { id } });
+}

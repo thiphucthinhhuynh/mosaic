@@ -6,7 +6,7 @@ Auth strategy background: [docs/architecture.md](../architecture.md) §6.
 
 ## Overview
 
-Mosaic V1 auth is email/password based. On successful login or signup, the API issues a single JWT access token as an `httpOnly` cookie. There is no refresh token in V1 (see [docs/architecture.md](../architecture.md) §6 and §18 for why, and Milestone 13 in the roadmap for when that changes).
+Mosaic auth is email/password based. On successful login or signup, the API issues a single JWT access token as an `httpOnly` cookie. There is no refresh token — this is a permanent design choice, not a placeholder for a later addition (see [docs/architecture.md](../architecture.md) §6 and §18 for why).
 
 All endpoints below are under `/api/v1/auth`. All responses use the standard envelope described in [docs/architecture.md](../architecture.md) §8: `{ data, error, meta }`. Request/response schemas are defined once in `packages/shared` (`signupSchema`, `loginSchema`, `PublicUser`) and used by both the backend and the frontend forms.
 
@@ -81,7 +81,7 @@ Note: login intentionally returns the same `401` with the same message for "no s
 | ------ | ---------------------------- | -------------- |
 | 401    | No valid auth cookie present | `UNAUTHORIZED` |
 
-**V1 limitation:** this clears the cookie client-side only. Because there is no refresh-token/session table yet, the token itself remains cryptographically valid until its natural expiry if captured before logout — see [docs/architecture.md](../architecture.md) §6. Server-side revocation on logout is a Milestone 13 addition.
+**Limitation, accepted permanently:** this clears the cookie client-side only. Because there is no refresh-token/session table, the token itself remains cryptographically valid until its natural expiry if captured before logout — see [docs/architecture.md](../architecture.md) §6. Server-side revocation is not planned; see [docs/roadmap.md](../roadmap.md)'s Deliberately Out of Scope section.
 
 ## `GET /api/v1/auth/me`
 

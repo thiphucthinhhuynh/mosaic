@@ -7,6 +7,7 @@ export function NavBar() {
   return (
     <nav>
       <Link to="/">Mosaic</Link>
+      <Link to="/stores">Stores</Link>
       {user ? (
         <>
           <Link to="/account">{user.username}</Link>
