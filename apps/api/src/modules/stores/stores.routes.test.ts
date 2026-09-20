@@ -99,6 +99,74 @@ describe('stores routes', () => {
     });
   });
 
+  describe('GET /api/v1/stores/:id/items', () => {
+    let itemsStoreId: string;
+
+    beforeAll(async () => {
+      const store = await prisma.store.create({
+        data: { ownerId, name: 'Item List Test Store' },
+      });
+      itemsStoreId = store.id;
+
+      // Three items makes pagination with limit=2 predictable: page 1 has 2
+      // items, page 2 has 1 — same approach as the stores-list pagination
+      // tests above.
+      await prisma.item.createMany({
+        data: [
+          { storeId: itemsStoreId, name: 'Item A', price: '10.00', quantity: 1, category: 'Misc' },
+          { storeId: itemsStoreId, name: 'Item B', price: '20.00', quantity: 2, category: 'Misc' },
+          { storeId: itemsStoreId, name: 'Item C', price: '30.00', quantity: 3, category: 'Misc' },
+        ],
+      });
+    });
+
+    it('returns a page of the store’s items with pagination meta', async () => {
+      const res = await request(app)
+        .get(`/api/v1/stores/${itemsStoreId}/items`)
+        .query({ limit: 2, page: 1 });
+
+      expect(res.status).toBe(200);
+      expect(res.body.error).toBeNull();
+      expect(res.body.data).toHaveLength(2);
+      expect(res.body.meta).toMatchObject({ page: 1, limit: 2, total: 3, totalPages: 2 });
+    });
+
+    it('returns the remainder on the next page', async () => {
+      const secondPage = await request(app)
+        .get(`/api/v1/stores/${itemsStoreId}/items`)
+        .query({ limit: 2, page: 2 });
+
+      expect(secondPage.status).toBe(200);
+      expect(secondPage.body.data).toHaveLength(1);
+    });
+
+    it('never returns another store’s items', async () => {
+      const res = await request(app).get(`/api/v1/stores/${itemsStoreId}/items`);
+
+      for (const item of res.body.data) {
+        expect(['Item A', 'Item B', 'Item C']).toContain(item.name);
+      }
+    });
+
+    it('returns 404 when the store does not exist', async () => {
+      const res = await request(app).get(
+        '/api/v1/stores/00000000-0000-0000-0000-000000000000/items',
+      );
+
+      expect(res.status).toBe(404);
+      expect(res.body.data).toBeNull();
+      expect(res.body.error.code).toBe('NOT_FOUND');
+    });
+
+    it('returns 400 for a malformed store id', async () => {
+      const res = await request(app).get('/api/v1/stores/not-a-valid-id/items');
+
+      expect(res.status).toBe(400);
+      expect(res.body.data).toBeNull();
+      expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    });
+  });
+
   describe('GET /api/v1/stores', () => {
     beforeAll(async () => {
       // Three stores for one owner makes pagination with limit=2 predictable:

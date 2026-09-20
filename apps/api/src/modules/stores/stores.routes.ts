@@ -8,6 +8,7 @@ import { findStoreOwnerId } from '@/modules/stores/stores.repository';
 import {
   listStoresHandler,
   getStoreByIdHandler,
+  listStoreItemsHandler,
   createStoreHandler,
   updateStoreHandler,
   deleteStoreHandler,
@@ -17,6 +18,12 @@ export const storesRouter = Router();
 
 storesRouter.get('/', validateQuery(storesListQuerySchema), listStoresHandler);
 storesRouter.get('/:id', validateParams(storeIdParamsSchema), getStoreByIdHandler);
+storesRouter.get(
+  '/:id/items',
+  validateParams(storeIdParamsSchema),
+  validateQuery(storesListQuerySchema),
+  listStoreItemsHandler,
+);
 storesRouter.post('/', requireAuth, validateBody(createStoreSchema), createStoreHandler);
 
 storesRouter.put(
