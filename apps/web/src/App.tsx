@@ -10,6 +10,7 @@ import { AccountPage } from '@/routes/AccountPage';
 import { StoresPage } from '@/routes/StoresPage';
 import { StoreDetailPage } from '@/routes/StoreDetailPage';
 import { CreateStorePage } from '@/routes/CreateStorePage';
+import { EditStorePage } from '@/routes/EditStorePage';
 
 function App() {
   return (
@@ -32,6 +33,14 @@ function App() {
                 }
               />
               <Route path="/stores/:id" element={<StoreDetailPage />} />
+              <Route
+                path="/stores/:id/edit"
+                element={
+                  <ProtectedRoute>
+                    <EditStorePage />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="/account"
                 element={

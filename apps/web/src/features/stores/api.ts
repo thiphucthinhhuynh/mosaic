@@ -1,4 +1,4 @@
-import type { CreateStoreInput, PublicStore } from '@mosaic/shared';
+import type { CreateStoreInput, PublicStore, UpdateStoreInput } from '@mosaic/shared';
 import { apiClient, apiClientWithMeta } from '@/lib/apiClient';
 
 export type StoresListMeta = {
@@ -26,4 +26,12 @@ export function fetchStoreById(id: string): Promise<PublicStore> {
 
 export function createStore(input: CreateStoreInput): Promise<PublicStore> {
   return apiClient<PublicStore>('/api/v1/stores', { method: 'POST', body: input });
+}
+
+export function updateStore(id: string, input: UpdateStoreInput): Promise<PublicStore> {
+  return apiClient<PublicStore>(`/api/v1/stores/${id}`, { method: 'PUT', body: input });
+}
+
+export function deleteStore(id: string): Promise<null> {
+  return apiClient<null>(`/api/v1/stores/${id}`, { method: 'DELETE' });
 }
