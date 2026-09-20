@@ -167,6 +167,125 @@ describe('stores routes', () => {
     });
   });
 
+  describe('POST /api/v1/stores/:id/items', () => {
+    let storeOwnerAgent: ReturnType<typeof request.agent>;
+    let itemStoreId: string;
+
+    beforeAll(async () => {
+      storeOwnerAgent = request.agent(app);
+      const storeOwnerId = await signupViaApi(storeOwnerAgent, 'stores_items_owner');
+      createdUserIds.push(storeOwnerId);
+
+      const store = await prisma.store.create({
+        data: { ownerId: storeOwnerId, name: 'Item Creation Test Store' },
+      });
+      itemStoreId = store.id;
+    });
+
+    it('creates an item with its images in one transaction', async () => {
+      const res = await storeOwnerAgent.post(`/api/v1/stores/${itemStoreId}/items`).send({
+        name: 'New Item',
+        description: 'Created via the authenticated endpoint.',
+        price: 24.99,
+        quantity: 5,
+        category: 'Test Category',
+        imageUrls: ['https://example.com/items/new-1.png', 'https://example.com/items/new-2.png'],
+      });
+
+      expect(res.status).toBe(201);
+      expect(res.body.error).toBeNull();
+      expect(res.body.data).toMatchObject({
+        name: 'New Item',
+        description: 'Created via the authenticated endpoint.',
+        price: '24.99',
+        quantity: 5,
+        category: 'Test Category',
+      });
+      expect(res.body.data.images).toHaveLength(2);
+
+      const stored = await prisma.item.findUnique({ where: { id: res.body.data.id } });
+      expect(stored?.storeId).toBe(itemStoreId);
+    });
+
+    it('creates an item with no images when imageUrls is omitted', async () => {
+      const res = await storeOwnerAgent.post(`/api/v1/stores/${itemStoreId}/items`).send({
+        name: 'Item Without Images',
+        price: 10,
+        quantity: 1,
+        category: 'Test Category',
+      });
+
+      expect(res.status).toBe(201);
+      expect(res.body.data.images).toEqual([]);
+    });
+
+    it('returns 403 when the requester does not own the store', async () => {
+      const otherAgent = request.agent(app);
+      const otherUserId = await signupViaApi(otherAgent, 'stores_items_other');
+      createdUserIds.push(otherUserId);
+
+      const res = await otherAgent.post(`/api/v1/stores/${itemStoreId}/items`).send({
+        name: 'Hijacked Item',
+        price: 5,
+        quantity: 1,
+        category: 'Test Category',
+      });
+
+      expect(res.status).toBe(403);
+      expect(res.body.data).toBeNull();
+      expect(res.body.error.code).toBe('FORBIDDEN');
+    });
+
+    it('returns 401 when not authenticated', async () => {
+      const res = await request(app).post(`/api/v1/stores/${itemStoreId}/items`).send({
+        name: 'No Session Item',
+        price: 5,
+        quantity: 1,
+        category: 'Test Category',
+      });
+
+      expect(res.status).toBe(401);
+      expect(res.body.data).toBeNull();
+      expect(res.body.error.code).toBe('UNAUTHORIZED');
+    });
+
+    it('returns 404 when the store does not exist', async () => {
+      const res = await storeOwnerAgent
+        .post('/api/v1/stores/00000000-0000-0000-0000-000000000000/items')
+        .send({ name: 'Does Not Matter', price: 5, quantity: 1, category: 'Test Category' });
+
+      expect(res.status).toBe(404);
+      expect(res.body.data).toBeNull();
+      expect(res.body.error.code).toBe('NOT_FOUND');
+    });
+
+    it('returns 400 for a zero or negative price', async () => {
+      const res = await storeOwnerAgent.post(`/api/v1/stores/${itemStoreId}/items`).send({
+        name: 'Free Item',
+        price: 0,
+        quantity: 1,
+        category: 'Test Category',
+      });
+
+      expect(res.status).toBe(400);
+      expect(res.body.data).toBeNull();
+      expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    });
+
+    it('returns 400 for a negative quantity', async () => {
+      const res = await storeOwnerAgent.post(`/api/v1/stores/${itemStoreId}/items`).send({
+        name: 'Negative Stock Item',
+        price: 5,
+        quantity: -1,
+        category: 'Test Category',
+      });
+
+      expect(res.status).toBe(400);
+      expect(res.body.data).toBeNull();
+      expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    });
+  });
+
   describe('GET /api/v1/stores', () => {
     beforeAll(async () => {
       // Three stores for one owner makes pagination with limit=2 predictable:

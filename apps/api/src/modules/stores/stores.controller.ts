@@ -1,9 +1,9 @@
 import type { Request, Response } from 'express';
 import type { z } from 'zod';
-import type { CreateStoreInput, UpdateStoreInput } from '@mosaic/shared';
+import type { CreateItemInput, CreateStoreInput, UpdateStoreInput } from '@mosaic/shared';
 import { asyncHandler } from '@/lib/asyncHandler';
 import { sendSuccess } from '@/lib/response';
-import { listItemsForStore } from '@/modules/items';
+import { listItemsForStore, createItemForStore } from '@/modules/items';
 import {
   listStores,
   getStoreById,
@@ -50,6 +50,15 @@ export const listStoreItemsHandler = asyncHandler(
       total,
       totalPages: Math.ceil(total / limit),
     });
+  },
+);
+
+export const createStoreItemHandler = asyncHandler(
+  async (req: Request<StoreIdParams, unknown, CreateItemInput>, res: Response) => {
+    // requireOwnership already guarantees the caller owns this store, which
+    // always runs before this handler in stores.routes.ts.
+    const item = await createItemForStore(req.params.id, req.body);
+    sendSuccess(res, item, 201);
   },
 );
 

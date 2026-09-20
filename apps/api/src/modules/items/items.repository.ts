@@ -75,3 +75,40 @@ export async function findItemById(id: string): Promise<PublicItemDetail | null>
     select: itemDetailSelect,
   });
 }
+
+export type NewItemInput = {
+  storeId: string;
+  name: string;
+  description?: string;
+  price: number;
+  quantity: number;
+  category: string;
+  imageUrls?: string[];
+};
+
+// The item and its images are created in one transaction, per this
+// milestone's DoD, so a failure partway through (e.g. an image insert
+// failing) can never leave an item with no images or a half-populated set —
+// either both writes land or neither does.
+export async function createItem(input: NewItemInput): Promise<PublicItem> {
+  return prisma.$transaction(async (tx) => {
+    const item = await tx.item.create({
+      data: {
+        storeId: input.storeId,
+        name: input.name,
+        description: input.description,
+        price: input.price,
+        quantity: input.quantity,
+        category: input.category,
+      },
+    });
+
+    if (input.imageUrls && input.imageUrls.length > 0) {
+      await tx.itemImage.createMany({
+        data: input.imageUrls.map((url) => ({ itemId: item.id, url })),
+      });
+    }
+
+    return tx.item.findUniqueOrThrow({ where: { id: item.id }, select: itemListSelect });
+  });
+}
