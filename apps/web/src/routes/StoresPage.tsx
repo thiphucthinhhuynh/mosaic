@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
+import { useAuth } from '@/features/auth';
 import { useStoresQuery } from '@/features/stores';
 
 const PAGE_SIZE = 20;
 
 export function StoresPage() {
+  const { user } = useAuth();
   const [page, setPage] = useState(1);
   const { data, isPending, isError, error } = useStoresQuery({ page, limit: PAGE_SIZE });
 
@@ -21,6 +23,7 @@ export function StoresPage() {
   return (
     <>
       <h1>Stores</h1>
+      {user && <Link to="/stores/new">Create a store</Link>}
       {stores.length === 0 ? (
         <p>No stores yet.</p>
       ) : (

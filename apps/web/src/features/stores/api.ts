@@ -1,4 +1,4 @@
-import type { PublicStore } from '@mosaic/shared';
+import type { CreateStoreInput, PublicStore } from '@mosaic/shared';
 import { apiClient, apiClientWithMeta } from '@/lib/apiClient';
 
 export type StoresListMeta = {
@@ -22,4 +22,8 @@ export async function fetchStores(params: {
 
 export function fetchStoreById(id: string): Promise<PublicStore> {
   return apiClient<PublicStore>(`/api/v1/stores/${id}`);
+}
+
+export function createStore(input: CreateStoreInput): Promise<PublicStore> {
+  return apiClient<PublicStore>('/api/v1/stores', { method: 'POST', body: input });
 }

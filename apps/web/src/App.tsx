@@ -9,6 +9,7 @@ import { SignupPage } from '@/routes/SignupPage';
 import { AccountPage } from '@/routes/AccountPage';
 import { StoresPage } from '@/routes/StoresPage';
 import { StoreDetailPage } from '@/routes/StoreDetailPage';
+import { CreateStorePage } from '@/routes/CreateStorePage';
 
 function App() {
   return (
@@ -22,6 +23,14 @@ function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/stores" element={<StoresPage />} />
+              <Route
+                path="/stores/new"
+                element={
+                  <ProtectedRoute>
+                    <CreateStorePage />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="/stores/:id" element={<StoreDetailPage />} />
               <Route
                 path="/account"
