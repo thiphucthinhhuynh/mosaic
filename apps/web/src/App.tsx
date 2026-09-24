@@ -11,6 +11,7 @@ import { StoresPage } from '@/routes/StoresPage';
 import { StoreDetailPage } from '@/routes/StoreDetailPage';
 import { CreateStorePage } from '@/routes/CreateStorePage';
 import { EditStorePage } from '@/routes/EditStorePage';
+import { ItemDetailPage } from '@/routes/ItemDetailPage';
 
 function App() {
   return (
@@ -41,6 +42,7 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route path="/items/:id" element={<ItemDetailPage />} />
               <Route
                 path="/account"
                 element={

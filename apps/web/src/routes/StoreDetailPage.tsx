@@ -1,5 +1,6 @@
 import { Link, useParams } from 'react-router';
 import { useAuth } from '@/features/auth';
+import { StoreItemList } from '@/features/items';
 import { DeleteStoreButton, useStoreQuery } from '@/features/stores';
 import { ApiError } from '@/lib/apiClient';
 
@@ -34,6 +35,7 @@ export function StoreDetailPage() {
           <DeleteStoreButton storeId={store.id} />
         </>
       )}
+      <StoreItemList key={store.id} storeId={store.id} />
     </>
   );
 }
