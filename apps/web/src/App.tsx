@@ -12,6 +12,7 @@ import { StoreDetailPage } from '@/routes/StoreDetailPage';
 import { CreateStorePage } from '@/routes/CreateStorePage';
 import { EditStorePage } from '@/routes/EditStorePage';
 import { ItemDetailPage } from '@/routes/ItemDetailPage';
+import { CreateItemPage } from '@/routes/CreateItemPage';
 
 function App() {
   return (
@@ -34,6 +35,14 @@ function App() {
                 }
               />
               <Route path="/stores/:id" element={<StoreDetailPage />} />
+              <Route
+                path="/stores/:id/items/new"
+                element={
+                  <ProtectedRoute>
+                    <CreateItemPage />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="/stores/:id/edit"
                 element={

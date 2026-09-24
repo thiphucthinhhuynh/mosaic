@@ -1,4 +1,4 @@
-import type { PublicItem, PublicItemDetail } from '@mosaic/shared';
+import type { CreateItemInput, PublicItem, PublicItemDetail } from '@mosaic/shared';
 import { apiClient, apiClientWithMeta } from '@/lib/apiClient';
 
 export type ItemsListMeta = {
@@ -24,4 +24,11 @@ export async function fetchItemsByStore(
 
 export function fetchItemById(id: string): Promise<PublicItemDetail> {
   return apiClient<PublicItemDetail>(`/api/v1/items/${id}`);
+}
+
+export function createItem(storeId: string, input: CreateItemInput): Promise<PublicItem> {
+  return apiClient<PublicItem>(`/api/v1/stores/${storeId}/items`, {
+    method: 'POST',
+    body: input,
+  });
 }

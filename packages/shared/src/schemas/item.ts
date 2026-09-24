@@ -7,8 +7,14 @@ import { z } from 'zod';
 export const createItemSchema = z.object({
   name: z.string().min(1).max(100),
   description: z.string().max(2000).optional(),
-  price: z.number().positive().max(99999999.99),
-  quantity: z.number().int().min(0),
+  price: z
+    .number({ error: 'Enter a price.' })
+    .positive('Price must be greater than 0.')
+    .max(99999999.99, 'Price is too large.'),
+  quantity: z
+    .number({ error: 'Enter a quantity.' })
+    .int('Quantity must be a whole number.')
+    .min(0, 'Quantity cannot be negative.'),
   category: z.string().min(1).max(50),
   imageUrls: z.array(z.url()).optional(),
 });
