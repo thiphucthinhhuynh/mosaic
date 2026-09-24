@@ -6,5 +6,5 @@ export { signupSchema, loginSchema } from './schemas/auth';
 export type { SignupInput, LoginInput } from './schemas/auth';
 export { createStoreSchema, updateStoreSchema } from './schemas/store';
 export type { CreateStoreInput, UpdateStoreInput } from './schemas/store';
-export { createItemSchema } from './schemas/item';
-export type { CreateItemInput } from './schemas/item';
+export { createItemSchema, updateItemSchema } from './schemas/item';
+export type { CreateItemInput, UpdateItemInput } from './schemas/item';

@@ -112,3 +112,51 @@ export async function createItem(input: NewItemInput): Promise<PublicItem> {
     return tx.item.findUniqueOrThrow({ where: { id: item.id }, select: itemListSelect });
   });
 }
+
+// Loader for requireOwnership. An item has no ownerId column — ownership is
+// derived through its store — so this selects the store's ownerId and
+// flattens it into the `{ ownerId }` shape the middleware expects. This is
+// the whole "ownership through a relation" mechanism: the middleware itself
+// stays unaware that the owner is one hop away.
+export async function findItemOwnerId(id: string): Promise<{ ownerId: string } | null> {
+  const item = await prisma.item.findUnique({
+    where: { id },
+    select: { store: { select: { ownerId: true } } },
+  });
+  return item ? { ownerId: item.store.ownerId } : null;
+}
+
+export type ItemUpdate = {
+  name?: string;
+  description?: string;
+  price?: number;
+  quantity?: number;
+  category?: string;
+  imageUrls?: string[];
+};
+
+// Like createItem, this is one transaction: replacing the image set is a
+// delete followed by an insert, and a failure between the two must not leave
+// the item with its old images gone and no new ones. imageUrls undefined
+// means "leave images alone" — distinct from [], which clears them.
+export async function updateItemById(id: string, input: ItemUpdate): Promise<PublicItem> {
+  const { imageUrls, ...fields } = input;
+
+  return prisma.$transaction(async (tx) => {
+    await tx.item.update({ where: { id }, data: fields });
+
+    if (imageUrls !== undefined) {
+      await tx.itemImage.deleteMany({ where: { itemId: id } });
+      if (imageUrls.length > 0) {
+        await tx.itemImage.createMany({ data: imageUrls.map((url) => ({ itemId: id, url })) });
+      }
+    }
+
+    return tx.item.findUniqueOrThrow({ where: { id }, select: itemListSelect });
+  });
+}
+
+// ItemImage rows go with it via onDelete: Cascade.
+export async function deleteItemById(id: string): Promise<void> {
+  await prisma.item.delete({ where: { id } });
+}
