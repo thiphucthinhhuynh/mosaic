@@ -133,6 +133,10 @@ The caller's own stores. Lives under `/users` (matching the URL), implemented in
 | ------ | ---------------- | -------------- |
 | 401    | No valid session | `UNAUTHORIZED` |
 
+## Item routes nested under stores
+
+`GET /api/v1/stores/:storeId/items` (public, paginated) and `POST /api/v1/stores/:storeId/items` (store owner only) live under `/stores` because that is where the URL puts them, but they operate on items and are documented in [docs/api/items.md](items.md). Their handlers are in the `stores` module and call into the `items` module's service layer.
+
 ## The `requireOwnership` middleware
 
-`PUT`/`DELETE` above are the first real use of the Resource Ownership tier from [docs/architecture.md](../architecture.md) §7. `requireOwnership(loadResource)` takes a loader function resolving to `{ ownerId }` and is generic over any resource type — including one owned through a relation (e.g. an item owned via its store, in Milestone 4) rather than only a direct `ownerId` column. It runs after `requireAuth` and before body validation, in this order: `validateParams → requireAuth → requireOwnership → validateBody → handler`.
+`PUT`/`DELETE` above are the first real use of the Resource Ownership tier from [docs/architecture.md](../architecture.md) §7. `requireOwnership(loadResource)` takes a loader function resolving to `{ ownerId }` and is generic over any resource type — including one owned through a relation rather than only a direct `ownerId` column. Milestone 4 proved this: items are owned via their store, and `PUT`/`DELETE /api/v1/items/:id` reuse this middleware unchanged with a loader that reads `item.store.ownerId` (see [docs/api/items.md](items.md)). It runs after `requireAuth` and before body validation, in this order: `validateParams → requireAuth → requireOwnership → validateBody → handler`.
