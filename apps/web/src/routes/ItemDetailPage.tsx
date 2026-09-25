@@ -1,11 +1,13 @@
 import { Link, useParams } from 'react-router';
-import { useItemQuery } from '@/features/items';
+import { useAuth } from '@/features/auth';
+import { DeleteItemButton, useItemQuery } from '@/features/items';
 import { ApiError } from '@/lib/apiClient';
 import { formatPrice } from '@/lib/formatPrice';
 
 export function ItemDetailPage() {
   // Only ever rendered via the /items/:id route, so id is always present.
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   const { data: item, isPending, isError, error } = useItemQuery(id!);
 
   if (isPending) {
@@ -18,6 +20,9 @@ export function ItemDetailPage() {
     }
     return <p role="alert">Failed to load item: {error.message}</p>;
   }
+
+  // An item has no owner of its own — it's owned by whoever owns its store.
+  const isOwner = user?.id === item.store.owner.id;
 
   return (
     <>
@@ -40,6 +45,12 @@ export function ItemDetailPage() {
         Sold by <Link to={`/stores/${item.store.id}`}>{item.store.name}</Link> (
         {item.store.owner.username})
       </p>
+      {isOwner && (
+        <>
+          <Link to={`/items/${item.id}/edit`}>Edit item</Link>
+          <DeleteItemButton itemId={item.id} storeId={item.store.id} />
+        </>
+      )}
     </>
   );
 }

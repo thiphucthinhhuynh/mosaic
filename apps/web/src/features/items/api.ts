@@ -1,4 +1,9 @@
-import type { CreateItemInput, PublicItem, PublicItemDetail } from '@mosaic/shared';
+import type {
+  CreateItemInput,
+  PublicItem,
+  PublicItemDetail,
+  UpdateItemInput,
+} from '@mosaic/shared';
 import { apiClient, apiClientWithMeta } from '@/lib/apiClient';
 
 export type ItemsListMeta = {
@@ -31,4 +36,12 @@ export function createItem(storeId: string, input: CreateItemInput): Promise<Pub
     method: 'POST',
     body: input,
   });
+}
+
+export function updateItem(id: string, input: UpdateItemInput): Promise<PublicItem> {
+  return apiClient<PublicItem>(`/api/v1/items/${id}`, { method: 'PUT', body: input });
+}
+
+export function deleteItem(id: string): Promise<null> {
+  return apiClient<null>(`/api/v1/items/${id}`, { method: 'DELETE' });
 }

@@ -12,6 +12,7 @@ import { StoreDetailPage } from '@/routes/StoreDetailPage';
 import { CreateStorePage } from '@/routes/CreateStorePage';
 import { EditStorePage } from '@/routes/EditStorePage';
 import { ItemDetailPage } from '@/routes/ItemDetailPage';
+import { EditItemPage } from '@/routes/EditItemPage';
 import { CreateItemPage } from '@/routes/CreateItemPage';
 
 function App() {
@@ -52,6 +53,14 @@ function App() {
                 }
               />
               <Route path="/items/:id" element={<ItemDetailPage />} />
+              <Route
+                path="/items/:id/edit"
+                element={
+                  <ProtectedRoute>
+                    <EditItemPage />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="/account"
                 element={
