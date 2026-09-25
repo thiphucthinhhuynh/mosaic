@@ -11,6 +11,9 @@ import { StoresPage } from '@/routes/StoresPage';
 import { StoreDetailPage } from '@/routes/StoreDetailPage';
 import { CreateStorePage } from '@/routes/CreateStorePage';
 import { EditStorePage } from '@/routes/EditStorePage';
+import { ItemDetailPage } from '@/routes/ItemDetailPage';
+import { EditItemPage } from '@/routes/EditItemPage';
+import { CreateItemPage } from '@/routes/CreateItemPage';
 
 function App() {
   return (
@@ -34,10 +37,27 @@ function App() {
               />
               <Route path="/stores/:id" element={<StoreDetailPage />} />
               <Route
+                path="/stores/:id/items/new"
+                element={
+                  <ProtectedRoute>
+                    <CreateItemPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/stores/:id/edit"
                 element={
                   <ProtectedRoute>
                     <EditStorePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/items/:id" element={<ItemDetailPage />} />
+              <Route
+                path="/items/:id/edit"
+                element={
+                  <ProtectedRoute>
+                    <EditItemPage />
                   </ProtectedRoute>
                 }
               />

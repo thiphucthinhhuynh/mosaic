@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createStoreSchema, updateStoreSchema } from '@mosaic/shared';
+import { createItemSchema, createStoreSchema, updateStoreSchema } from '@mosaic/shared';
 import { validateBody, validateParams, validateQuery } from '@/middleware/validate';
 import { requireAuth } from '@/middleware/requireAuth';
 import { requireOwnership } from '@/middleware/requireOwnership';
@@ -8,6 +8,8 @@ import { findStoreOwnerId } from '@/modules/stores/stores.repository';
 import {
   listStoresHandler,
   getStoreByIdHandler,
+  listStoreItemsHandler,
+  createStoreItemHandler,
   createStoreHandler,
   updateStoreHandler,
   deleteStoreHandler,
@@ -17,7 +19,22 @@ export const storesRouter = Router();
 
 storesRouter.get('/', validateQuery(storesListQuerySchema), listStoresHandler);
 storesRouter.get('/:id', validateParams(storeIdParamsSchema), getStoreByIdHandler);
+storesRouter.get(
+  '/:id/items',
+  validateParams(storeIdParamsSchema),
+  validateQuery(storesListQuerySchema),
+  listStoreItemsHandler,
+);
 storesRouter.post('/', requireAuth, validateBody(createStoreSchema), createStoreHandler);
+
+storesRouter.post(
+  '/:id/items',
+  validateParams(storeIdParamsSchema),
+  requireAuth,
+  requireOwnership(findStoreOwnerId),
+  validateBody(createItemSchema),
+  createStoreItemHandler,
+);
 
 storesRouter.put(
   '/:id',

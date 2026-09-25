@@ -1,5 +1,6 @@
 import { Link, useParams } from 'react-router';
 import { useAuth } from '@/features/auth';
+import { StoreItemList } from '@/features/items';
 import { DeleteStoreButton, useStoreQuery } from '@/features/stores';
 import { ApiError } from '@/lib/apiClient';
 
@@ -31,9 +32,11 @@ export function StoreDetailPage() {
       {isOwner && (
         <>
           <Link to={`/stores/${store.id}/edit`}>Edit store</Link>
+          <Link to={`/stores/${store.id}/items/new`}>Add an item</Link>
           <DeleteStoreButton storeId={store.id} />
         </>
       )}
+      <StoreItemList key={store.id} storeId={store.id} />
     </>
   );
 }

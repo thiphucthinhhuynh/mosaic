@@ -46,8 +46,61 @@ model Store {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  items Item[]
 
   @@index([ownerId])
   @@map("stores")
+}
+
+// No direct ownerId: Milestone 4's DoD requires ownership to be derived
+// through the store relation (item.store.ownerId), not a shortcut column —
+// this is the second real use of requireOwnership's resource-loader
+// pattern, one hop deeper than Store's.
+//
+// onDelete: Cascade on storeId — deleting a store deletes its items (and,
+// transitively, their images), same reasoning as User -> Store above.
+//
+// category is required, not optional like description/location: unlike
+// those, Milestone 5's search/filtering depends on every item having one to
+// filter by, so leaving it out isn't a case this schema wants to allow.
+//
+// price/quantity have no DB-level CHECK constraint — negative values are
+// rejected by the Zod schema at the API boundary (Milestone 4 step 3), the
+// same layer that already owns every other value-range rule in this app.
+//
+// @@index([storeId]): Postgres does not auto-index FK columns, and
+// GET /api/v1/stores/:storeId/items (Milestone 4, step 2) queries on it.
+model Item {
+  id          String   @id @default(uuid())
+  storeId     String   @map("store_id")
+  name        String   @db.VarChar(100)
+  description String?  @db.Text
+  price       Decimal  @db.Decimal(10, 2)
+  quantity    Int
+  category    String   @db.VarChar(50)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  store  Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  images ItemImage[]
+
+  @@index([storeId])
+  @@map("items")
+}
+
+// No updatedAt: images aren't edited in place, only added/removed, so
+// there's nothing on this row that changes after creation.
+//
+// @@index([itemId]): same FK-indexing reasoning as Item.storeId above.
+model ItemImage {
+  id        String   @id @default(uuid())
+  itemId    String   @map("item_id")
+  url       String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([itemId])
+  @@map("item_images")
 }

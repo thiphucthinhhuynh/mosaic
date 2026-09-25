@@ -6,6 +6,7 @@ import { healthRouter } from '@/modules/health';
 import { usersRouter } from '@/modules/users';
 import { authRouter } from '@/modules/auth';
 import { storesRouter } from '@/modules/stores';
+import { itemsRouter } from '@/modules/items';
 import { sendError } from '@/lib/response';
 import { errorHandler } from '@/middleware/errorHandler';
 
@@ -22,6 +23,7 @@ app.use('/api/v1/health', healthRouter);
 app.use('/api/v1/users', usersRouter);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/stores', storesRouter);
+app.use('/api/v1/items', itemsRouter);
 
 app.use((_req: Request, res: Response) => {
   sendError(res, 404, 'NOT_FOUND', 'The requested resource does not exist.');
